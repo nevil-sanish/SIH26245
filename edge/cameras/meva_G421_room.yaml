@@ -1,0 +1,11 @@
+# Room camera — MEVA school lobby/cafeteria G421 (CC BY 4.0): 15–25 people, many seated at tables.
+camera_id: CAM-ROOM
+centre_id: TC0421
+role: room
+source: data/work/clips/G421_2018-03-11_1155.mp4
+start_time: "2018-03-11T11:55:01"
+sample_fps: 1
+detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35, tile: 960}
+room_polygon: [[0, 300], [1920, 300], [1920, 1080], [0, 1080]]
+timestamp_roi: [16, 16, 620, 64]
+timestamp_format: "%d-%m-%Y %H:%M:%S"

@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+from scipy.stats import binom
 
 # Defaults; every one is overridable through `Params` (cloud config / API query).
 @dataclass
@@ -25,7 +26,9 @@ class Params:
     inflation_frac: float = 0.8    # peak occupancy < 80 % of claimed → inflation
     ghost_occ: float = 0.5         # occupancy ≤ this around a check-in = empty room
     ghost_frac: float = 0.2
-    unmatched_frac: float = 0.1
+    unmatched_frac: float = 0.1    # minimum share of unmatched check-ins before flagging ...
+    door_recall: float = 0.9       # ... and it must also be improbable given the MEASURED door recall
+    alpha: float = 0.01            #     (binomial test: P(≥ k unmatched | n, miss = 1 − recall) < alpha)
     hours_gap_frac: float = 0.2
     min_coverage: float = 0.7      # occupancy samples must cover ≥ 70 % of session time
     sample_s: float = 60           # occupancy sample spacing in the cloud (Whisper = 60 s)
@@ -125,9 +128,15 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
     if has_door:
         pairs, unmatched = match_checkins(s.checkins, s.entries, p.window_s)
         uf = len(unmatched) / n if n else 0.0
+        k = len(unmatched)
+        p_val = float(binom.sf(k - 1, n, 1 - p.door_recall)) if n else 1.0
+        # severity = unmatched share beyond what missed detections explain
+        excess = max(0.0, uf - (1 - p.door_recall)) / max(p.door_recall, 1e-9)
         signals["unmatched_checkin"] = {
-            "value": len(unmatched), "flag": uf > p.unmatched_frac and len(unmatched) >= 2,
-            "severity": uf, "detail": f"{len(unmatched)}/{n} check-ins have no door entry within ±{p.window_s:.0f} s"}
+            "value": k, "flag": uf > p.unmatched_frac and k >= 2 and p_val < p.alpha,
+            "severity": excess, "p_value": round(p_val, 5),
+            "detail": f"{k}/{n} check-ins have no door entry within ±{p.window_s:.0f} s "
+                      f"(expected ≤{(1 - p.door_recall) * n:.0f} from missed detections; p={p_val:.3g})"}
         result["matched"] = [[float(s.checkins[a]), float(s.entries[b])] for a, b in pairs]
         result["unmatched"] = [float(s.checkins[i]) for i in unmatched]
 

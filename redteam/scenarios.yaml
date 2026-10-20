@@ -1,0 +1,33 @@
+# Red-team scenarios (PROMPT §14). Everything generated from this file is labelled `simulated`.
+# `expect`: flag types of which at least one must fire (fraud) — or `none` (honest control: no fraud flag may fire).
+# Event-level scenarios add detector noise taken from the *measured* door P/R and count MAE (eval/metrics.py).
+defaults:
+  enrolled: 30
+  trainers: 1
+  session: {start: "10:00", hours: 4}
+  arrival_spread_min: 20
+  checkin_delay_s: [5, 90]          # face-auth check-in happens shortly after walking in
+
+scenarios:
+  R1: {name: "Bulk check-in, empty room", level: event, expect: [unmatched_checkin, burst, ghost_session, inflation],
+       params: {checkins: 25, burst_s: 40, present: 0}}
+  R2: {name: "Proxy check-ins", level: event, expect: [unmatched_checkin, inflation, trainee_hours_gap],
+       params: {checkins: 30, present: 18}}
+  R3: {name: "Check-in and leave", level: event, expect: [checkin_then_leave, trainee_hours_gap],
+       params: {present: 30, leave: 20, leave_after_min: 20}}
+  R4: {name: "Replayed footage (yesterday's DVR clip)", level: video, expect: [clock_drift, loop],
+       params: {clip: G420_busy, replay_offset_days: 1}}
+  R5: {name: "Same clip from two centres", level: video, expect: [cross_centre_duplicate],
+       params: {clip: G421_room, centres: [TC0421, TC0555]}}
+  R6: {name: "Frozen / covered camera", level: video, expect: [frozen, covered],
+       params: {clip: G421_room, freeze_s: [60, 150], cover_s: [180, 260]}}
+  R7: {name: "Ornamental equipment (14 days unused)", level: series, expect: [ornamental_asset],
+       params: {days: 14, practical_h: 3, use_frac: 0.0}}
+  R8: {name: "Rented-for-inspection asset", level: series, expect: [asset_swapped],
+       params: {days: 10, swap_day: 6}}
+  R9: {name: "Performing for audits", level: series, expect: [inspection_shadow],
+       params: {days: 75, inspections: 3, window: 3, honest_in_window: true, proxy_frac_outside: 0.45}}
+  N1: {name: "Normal session", level: event, expect: none, params: {present: 30}}
+  N2: {name: "Lunch break", level: event, expect: none, params: {present: 30, lunch: ["12:00", "12:30"]}}
+  N3: {name: "Trainees move to a workshop (practical slot in another room)", level: event, expect: none,
+       params: {present: 30, move: ["12:30", "14:00"]}}

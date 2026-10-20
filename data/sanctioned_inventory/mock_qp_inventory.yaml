@@ -1,0 +1,28 @@
+# MOCK sanctioned inventory for 3 demo trades (PROMPT §5.3). label: mock.
+# The official per-job-role equipment lists live in each Qualification Pack / model curriculum (NSDC / SSC).
+# QP codes below are [Likely] and quantities are illustrative stand-ins — verify against the official QP
+# document before any real use; docs/DECISIONS.md tracks this. `per`: batch = fixed per batch, trainee = × enrolment.
+label: mock
+trades:
+  - qp_code: SSC/Q2212
+    job_role: Domestic Data Entry Operator (Computer/IT lab)
+    source_note: "MOCK — modelled on the IT-ITeS SSC model curriculum equipment list; not the official list."
+    items:
+      - {item: computer monitor, qty: 1, per: trainee}
+      - {item: keyboard, qty: 1, per: trainee}
+      - {item: projector, qty: 1, per: batch}
+      - {item: printer, qty: 1, per: batch}
+  - qp_code: AMH/Q0301
+    job_role: Sewing Machine Operator (Tailoring)
+    source_note: "MOCK — modelled on the Apparel SSC model curriculum equipment list; not the official list."
+    items:
+      - {item: sewing machine, qty: 1, per: trainee}
+      - {item: cutting table, qty: 2, per: batch}
+      - {item: iron, qty: 2, per: batch}
+  - qp_code: ELE/Q3104
+    job_role: Electrician / Welding workshop
+    source_note: "MOCK — modelled on the Electronics SSC model curriculum equipment list; not the official list."
+    items:
+      - {item: lathe machine, qty: 1, per: batch}
+      - {item: welding machine, qty: 2, per: batch}
+      - {item: workbench, qty: 1, per: trainee}

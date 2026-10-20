@@ -1,0 +1,13 @@
+# Door camera — MEVA school entrance G420 (CC BY 4.0, Kitware/IARPA). 1920x1080 @ 30 fps.
+# Door line derived from MEVA ground-truth trajectories (docs/DECISIONS.md#door-line).
+camera_id: CAM-DOOR
+centre_id: TC0421
+role: door
+source: data/work/clips/G420_2018-03-11_1200.mp4
+start_time: "2018-03-11T12:00:00"
+sample_fps: 8
+detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.4}
+door_line: [[1150, 700], [1400, 950]]
+entry_direction: in_is_left_to_right
+timestamp_roi: [16, 16, 620, 64]
+timestamp_format: "%d-%m-%Y %H:%M:%S"

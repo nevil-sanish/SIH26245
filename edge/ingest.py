@@ -13,6 +13,8 @@ from urllib.parse import urlparse
 
 import cv2
 
+from edge import IST
+
 VIDEO_EXT = {".mp4", ".avi", ".mkv", ".mov", ".ogv", ".webm"}
 
 
@@ -25,7 +27,10 @@ def frames(source: str, sample_fps: float, start_time: str | None = None, max_ba
     if source.startswith(("rtsp://", "http://", "https://")):
         yield from _live(source, sample_fps, max_backoff)
         return
-    t0 = datetime.fromisoformat(start_time).timestamp() if start_time else time.time()
+    t0 = time.time()
+    if start_time:
+        d = datetime.fromisoformat(start_time)
+        t0 = (d if d.tzinfo else d.replace(tzinfo=IST)).timestamp()   # naive config times are IST
     for f in _files(source):
         cap = cv2.VideoCapture(str(f))
         fps = cap.get(cv2.CAP_PROP_FPS) or 25

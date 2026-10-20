@@ -25,6 +25,7 @@ from cloud import analyze, sidh_mock
 from cloud.db import (ROOT, AssetObservation, AssetRegistry, DoorEvent, OccupancySample, SessionLocal, init_db)
 from cloud.ingest import ingest
 from redteam.generators import Noise, event_session, r7_asset_days, r8_identity_days, r9_centre_days
+from edge import IST
 from redteam.runner import DEMO_DAY
 
 DEMO = ROOT / "data" / "demo"
@@ -97,7 +98,7 @@ def build(noise: Noise):
             sessions, insp = r9_centre_days(91, noise, days=75)
             base = DEMO_DAY - timedelta(days=75)
             for i, s in enumerate(sessions):
-                shift = (base + timedelta(days=i)) - datetime.fromtimestamp(s.start).replace(hour=0, minute=0, second=0)
+                shift = (base + timedelta(days=i)) - datetime.fromtimestamp(s.start, IST).replace(hour=0, minute=0, second=0, microsecond=0)
                 s = _shift(s, shift.total_seconds())
                 obs += add_session(seed, cid, bid, s)
             seed["inspections"] += [dict(centre_id=cid, date=(base + timedelta(days=i)).strftime("%Y-%m-%d"),

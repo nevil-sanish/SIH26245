@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from cloud.db import (AssetObservation, Camera, Centre, DataGap, DoorEvent, IntegrityEvent, KeyframeHash,
                       OccupancySample, Packet, ROOT)
+from edge import IST
 from edge.packet import canonical, chain_hash, verify
 
 SERVER_KEY_PATH = Path(ROOT / "data" / "server.key")
@@ -136,7 +137,7 @@ def _expand(db: Session, p: dict, label: str):
         db.add(KeyframeHash(centre_id=c, cam=cam, ts=t, phash=p["ph"]))
     # Asset use seconds and identity scores → one observation row per asset per day (scheduled practical
     # time is filled from the timetable by cloud/analyze.py).
-    date = datetime.fromtimestamp(t).strftime("%Y-%m-%d")
+    date = datetime.fromtimestamp(t, IST).strftime("%Y-%m-%d")
     for aid in set(p.get("use") or {}) | set(p.get("aid") or {}):
         o = db.scalars(select(AssetObservation).where(AssetObservation.centre_id == c, AssetObservation.asset_id == aid,
                                                       AssetObservation.date == date)).first()

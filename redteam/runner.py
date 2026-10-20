@@ -15,13 +15,14 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from edge import IST
 from redteam.generators import (SCENARIOS, Noise, burn_clock, event_session, freeze_and_cover, r7_asset_days,
                                 r8_identity_days, r9_centre_days)
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 CLIPS = ROOT / "data" / "work" / "clips"
-DEMO_DAY = datetime(2026, 10, 19)
+DEMO_DAY = datetime(2026, 10, 19, tzinfo=IST)
 MEVA = RAW / "meva"
 
 SOURCES = {

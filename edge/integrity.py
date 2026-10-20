@@ -20,6 +20,8 @@ import imagehash
 import numpy as np
 from PIL import Image
 
+from edge import IST
+
 
 @dataclass
 class IntegrityParams:
@@ -132,7 +134,7 @@ def parse_clock(text: str, fmt: str) -> float | None:
     it = iter(digits)
     rebuilt = "".join(next(it) if c.isdigit() else c for c in probe)
     try:
-        return datetime.strptime(rebuilt, fmt).timestamp()
+        return datetime.strptime(rebuilt, fmt).replace(tzinfo=IST).timestamp()   # DVRs show centre-local time
     except ValueError:
         return None
 
@@ -174,7 +176,7 @@ class LoopIndex:
         self.db.execute("CREATE TABLE IF NOT EXISTS keyframes (cam TEXT, t REAL, day TEXT, ph TEXT)")
 
     def check_and_add(self, cam: str, t: float, ph: str) -> dict | None:
-        day = datetime.fromtimestamp(t).strftime("%Y-%m-%d")
+        day = datetime.fromtimestamp(t, IST).strftime("%Y-%m-%d")
         self.db.execute("DELETE FROM keyframes WHERE t < ?", (t - self.p.loop_days * 86400,))
         rows = self.db.execute("SELECT t, day, ph FROM keyframes WHERE cam=? AND day != ?", (cam, day)).fetchall()
         h = int(ph, 16)
@@ -199,7 +201,7 @@ def mask_roi(frame_bgr: np.ndarray, roi) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    assert parse_clock("07-03-2018 11:00:05", "%d-%m-%Y %H:%M:%S") == datetime(2018, 3, 7, 11, 0, 5).timestamp()
+    assert parse_clock("07-03-2018 11:00:05", "%d-%m-%Y %H:%M:%S") == datetime(2018, 3, 7, 11, 0, 5, tzinfo=IST).timestamp()
     assert parse_clock("O7-03-2018 11:00:O5", "%d-%m-%Y %H:%M:%S") is not None
     c = ClockCheck()
     assert not c.check(1000, 1000)["clock_non_monotonic"]

@@ -8,6 +8,7 @@ video   manipulations of real MEVA clips with ffmpeg: DVR timestamp burn-in, rep
 """
 from __future__ import annotations
 
+import os
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -17,6 +18,7 @@ import numpy as np
 import yaml
 
 from cloud.engines.reconcile import Session
+from edge import IST
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = yaml.safe_load(open(ROOT / "redteam" / "scenarios.yaml"))
@@ -40,7 +42,7 @@ def event_session(sid: str, seed: int, noise: Noise = Noise(), day: datetime | N
     sc, d = SCENARIOS["scenarios"][sid], SCENARIOS["defaults"]
     p = sc["params"]
     rng = np.random.default_rng(seed)
-    day = day or datetime(2026, 10, 12)
+    day = day or datetime(2026, 10, 12, tzinfo=IST)
     start = _hm(day, d["session"]["start"])
     end = start + d["session"]["hours"] * 3600
     present = p.get("present", d["enrolled"])
@@ -134,7 +136,7 @@ def r9_centre_days(seed: int, noise: Noise = Noise(), days=75, inspections=3, wi
     insp = sorted(rng.choice(np.arange(10, days - 10), size=inspections, replace=False))
     while any(b - a < 2 * window + 4 for a, b in zip(insp, insp[1:])):
         insp = sorted(rng.choice(np.arange(10, days - 10), size=inspections, replace=False))
-    base = datetime(2026, 7, 1)
+    base = datetime(2026, 7, 1, tzinfo=IST)
     sessions = []
     for i in range(days):
         near = any(abs(i - j) <= window for j in insp)
@@ -149,7 +151,8 @@ def r9_centre_days(seed: int, noise: Noise = Noise(), days=75, inspections=3, wi
 
 # --------------------------------------------------------------------------------------------- video
 def ffmpeg(*args):
-    subprocess.run(["ffmpeg", "-v", "error", "-y", *map(str, args)], check=True)
+    # TZ=IST so the burned-in DVR clock (pts:localtime) shows centre-local time on any host.
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *map(str, args)], check=True, env={**os.environ, "TZ": "Asia/Kolkata"})
 
 
 def _clock_filter(epoch: int, fontsize=40) -> str:

@@ -45,6 +45,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return r.json();
 }
 
-export const fmtDate = (t: number) => new Date(t * 1000).toLocaleString("en-IN", { hour12: false });
-export const fmtTime = (t: number) => new Date(t * 1000).toLocaleTimeString("en-IN", { hour12: false, hour: "2-digit", minute: "2-digit" });
+// All wall-clock values are IST (centres are in India), whatever the viewer's browser timezone.
+export const fmtDate = (t: number) => new Date(t * 1000).toLocaleString("en-IN", { hour12: false, timeZone: "Asia/Kolkata" });
+export const fmtTime = (t: number) => new Date(t * 1000).toLocaleTimeString("en-IN", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
 export const rupees = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");

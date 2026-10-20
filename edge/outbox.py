@@ -134,6 +134,8 @@ def sms_summary(packets: list[dict]) -> str:
         b[1] += p.get("in", 0)
         for f in p.get("flags", []):
             b[2] |= bits.get(f, 0)
-    day = time.strftime("%y%m%d", time.localtime(packets[-1]["t"]))
+    from datetime import datetime
+    from edge import IST
+    day = datetime.fromtimestamp(packets[-1]["t"], IST).strftime("%y%m%d")
     body = ";".join(f"{c[-6:]}:{o}/{i}/{f}" for c, (o, i, f) in sorted(by.items()))
     return f"SK|{packets[-1]['c']}|{day}|{body}|{max(p['seq'] for p in packets)}"[:160]

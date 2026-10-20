@@ -57,7 +57,7 @@ def test_end_to_end_flag_review_and_scoping():
         assert q[0]["id"] == "TCX" and q[0]["risk"] > 50 and q[0]["evidence_level"] == "FULL"
         types = {r["type"] for r in q[0]["reasons"]}
         assert types & {"unmatched_checkin", "burst", "ghost_session"}
-        rec = c.get("/v1/batches/TCX-B1/reconciliation", params={"date": analyze.datetime.fromtimestamp(T0).strftime("%Y-%m-%d")}, headers=off).json()
+        rec = c.get("/v1/batches/TCX-B1/reconciliation", params={"date": analyze.datetime.fromtimestamp(T0, analyze.IST).strftime("%Y-%m-%d")}, headers=off).json()
         assert rec["status"] == "DISCREPANCY" and len(rec["unmatched"]) == 25 and rec["source_data"]["label"] == "mock"
         fid = q[0]["reasons"][0]["flag_id"]
         ev = c.get(f"/v1/flags/{fid}", headers=off).json()

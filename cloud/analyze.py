@@ -16,6 +16,7 @@ from cloud.db import (AssetObservation, AssetRegistry, Batch, Centre, Checkin, D
 from cloud.engines import assets as asset_engine
 from cloud.engines import registry, risk, shadow
 from cloud.engines.reconcile import Params, Session as RSession, reconcile_session
+from edge import IST
 from edge.evidence import TAMPER, batch_level
 
 NEXT_STEP = {
@@ -41,7 +42,7 @@ NEXT_STEP = {
 
 
 def _day_bounds(date: str) -> tuple[int, int]:
-    d = datetime.fromisoformat(date)
+    d = datetime.fromisoformat(date).replace(tzinfo=IST)
     return int(d.timestamp()), int((d + timedelta(days=1)).timestamp())
 
 
@@ -140,7 +141,7 @@ def integrity_flags(db: Session, c: Centre):
                                                   IntegrityEvent.kind.in_(TAMPER))).all()
     by = defaultdict(list)
     for e in evs:
-        by[(datetime.fromtimestamp(e.ts).strftime("%Y-%m-%d"), e.kind)].append(e)
+        by[(datetime.fromtimestamp(e.ts, IST).strftime("%Y-%m-%d"), e.kind)].append(e)
     for (date, kind), rows in by.items():
         mins = len(rows)
         if kind == "clock_drift":
@@ -163,12 +164,12 @@ def integrity_flags(db: Session, c: Centre):
                                             [(h.centre_id, h.phash, h.ts) for h in others])
     by_day = defaultdict(list)
     for h in hits:
-        by_day[datetime.fromtimestamp(h["t"]).strftime("%Y-%m-%d")].append(h)
+        by_day[datetime.fromtimestamp(h["t"], IST).strftime("%Y-%m-%d")].append(h)
     for date, hs in by_day.items():
         o = hs[0]
         upsert_flag(db, c.id, None, date, "cross_centre_duplicate", min(1.0, 0.6 + len(hs) / 10), "FULL",
                     f"{len(hs)} keyframe(s) match centre {o['other_centre']} on "
-                    f"{datetime.fromtimestamp(o['other_t']):%d %b} (Hamming {o['hamming']}/64)",
+                    f"{datetime.fromtimestamp(o['other_t'], IST):%d %b} (Hamming {o['hamming']}/64)",
                     {"matches": hs[:10]}, "measured")
 
 
@@ -242,10 +243,10 @@ def shadow_flag(db: Session, c: Centre) -> dict | None:
 
 def gap_flags(db: Session, c: Centre):
     for g in db.scalars(select(DataGap).where(DataGap.centre_id == c.id, DataGap.resolved.is_(False))):
-        date = datetime.fromtimestamp(g.start).strftime("%Y-%m-%d")
+        date = datetime.fromtimestamp(g.start, IST).strftime("%Y-%m-%d")
         upsert_flag(db, c.id, None, date, "data_gap", 0.3, "INSUFFICIENT",
-                    f"{g.reason.replace('_', ' ')} on {g.cam}: {datetime.fromtimestamp(g.start):%H:%M}–"
-                    f"{datetime.fromtimestamp(g.end or g.start):%H:%M}. Not treated as compliant.",
+                    f"{g.reason.replace('_', ' ')} on {g.cam}: {datetime.fromtimestamp(g.start, IST):%H:%M}–"
+                    f"{datetime.fromtimestamp(g.end or g.start, IST):%H:%M}. Not treated as compliant.",
                     {"gap_id": g.id}, "measured")
 
 
@@ -253,7 +254,7 @@ def run_centre(db: Session, centre_id: str, dates: list[str] | None = None) -> d
     c = db.get(Centre, centre_id)
     out = {"centre": centre_id, "sessions": 0}
     for b in db.scalars(select(Batch).where(Batch.centre_id == centre_id)):
-        ds = dates or sorted({datetime.fromtimestamp(s).strftime("%Y-%m-%d") for s in
+        ds = dates or sorted({datetime.fromtimestamp(s, IST).strftime("%Y-%m-%d") for s in
                               db.scalars(select(TimetableSlot.start).where(TimetableSlot.batch_id == b.id))})
         for d in ds:
             if reconcile_batch_day(db, b, d):

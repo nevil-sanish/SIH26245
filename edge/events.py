@@ -24,6 +24,8 @@ class MinuteBucket:
     trainers: list[int] = field(default_factory=list)
     use: dict[str, float] = field(default_factory=dict)
     frames: int = 0
+    t_first: float | None = None   # first / last frame time inside this minute (partial minutes at clip edges)
+    t_last: float | None = None
 
 
 class EventBuilder:
@@ -48,6 +50,8 @@ class EventBuilder:
         done = self._roll(t)
         b = self.bucket
         b.frames += 1
+        b.t_first = t if b.t_first is None else b.t_first
+        b.t_last = t
         off = int(t - b.t0)
         b.entries += [off] * crossings[0]
         b.exits += [off] * crossings[1]

@@ -76,7 +76,8 @@ def run(cfg: CameraConfig, state: Path, uplink: str | None, tier: str = "whisper
 
     def emit(bucket):
         nonlocal flags_min, clk_drift, phash_min, ident, thumb_frame, loop_hit
-        expected = int(60 * fps)
+        span = (bucket.t_last - bucket.t_first) if bucket.t_first is not None else 0
+        expected = int(min(60, span + 1 / fps) * fps)   # only the part of the minute the source actually covered
         level = evidence.camera_level(flags_min, bucket.frames, expected, sharp, ip.lap_min)
         f = {"in": len(bucket.entries), "out": len(bucket.exits), "ei": bucket.entries, "eo": bucket.exits,
              "occ": int(np.median(bucket.occ)) if bucket.occ else None, "oc": bucket.occ,

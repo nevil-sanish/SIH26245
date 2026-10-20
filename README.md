@@ -10,6 +10,7 @@ around inspections are found by change-point analysis (**H3**). Nobody is identi
 
 | Read this | For |
 |---|---|
+| [`docs/summary.md`](docs/summary.md) | **current status + handoff for a new session** |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **start here** — flow, repo map, data contracts, engines, how to run |
 | [`PROMPT.md`](PROMPT.md) | the build contract |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | verified facts and every deviation from the prompt |

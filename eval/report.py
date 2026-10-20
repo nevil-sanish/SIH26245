@@ -92,6 +92,13 @@ def render(r: dict) -> str:
         for e in r["edge_runs"]:
             L.append(f"| {e['centre']} | {e['camera']} | {e['clip']} | {e['frames']} | {e['fps_measured']} | "
                      f"{e.get('provider', 'CPUExecutionProvider')} | {e['packets']} | {', '.join(e['unavailable']) or '—'} |")
+    if r.get("cpu_benchmark"):
+        b = r["cpu_benchmark"]
+        L += ["", "## Edge CPU throughput (measured)", "",
+              f"Door camera, RF-DETR Nano 384, ByteTrack, all integrity checks, ONNX Runtime **CPU**: "
+              f"**{b.get('fps_measured')} processed frames/s** over {b.get('frames')} frames on the hardware below "
+              f"(PROMPT D1 target ≥ 1 fps per camera). Scenario runs above may use the CUDA provider for turnaround; "
+              f"the graph and outputs are the same."]
     L += ["", "## Hardware", "", r.get("hardware", "—"), "",
           "## Known limits", "",
           "- MEVA is US school footage with adult actors; Indian skilling-centre footage (own recordings) will be "

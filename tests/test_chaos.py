@@ -96,3 +96,13 @@ def test_unknown_device_rejected():
     with SessionLocal() as db:
         ack = ingest(db, _packets("NOPE", SigningKey.generate(), 1))
     assert ack["rejected"][0]["reason"] == "unknown device"
+
+
+def test_sms_summary_fits_one_sms():
+    from edge.outbox import sms_summary
+    key = SigningKey.generate()
+    pk = _packets("TC0421", key, 480) + [{**p, "cam": "CAM-ROOM", "flags": ["frozen"]} for p in _packets("TC0421", key, 480)]
+    s = sms_summary(pk)
+    assert s.startswith("SK|TC0421|") and len(s) <= 160
+    segs = dict(x.split(":") for x in s.split("|")[3].split(";"))
+    assert segs["M-ROOM"].endswith("/1") and segs["CAM1"].endswith("/0")   # frozen bit only on the room camera

@@ -116,3 +116,24 @@ class Outbox:
                 return self._ack
             time.sleep(0.1)
         raise TimeoutError("no MQTT ack")
+
+
+SMS_AFTER_S = 6 * 3600
+
+
+def sms_summary(packets: list[dict]) -> str:
+    """One ≤160-char daily heads-up for when the link has been down > 6 h (PROMPT §11). Never evidence:
+    the signed packets still follow. Format: SK|centre|date|cam:peakOcc/entries/flagBits;…|lastSeq"""
+    if not packets:
+        return ""
+    bits = {"frozen": 1, "covered": 2, "moved": 4, "clock_drift": 8, "clock_non_monotonic": 16, "loop": 32}
+    by = {}
+    for p in packets:
+        b = by.setdefault(p["cam"], [0, 0, 0])
+        b[0] = max(b[0], p.get("occ") or 0)
+        b[1] += p.get("in", 0)
+        for f in p.get("flags", []):
+            b[2] |= bits.get(f, 0)
+    day = time.strftime("%y%m%d", time.localtime(packets[-1]["t"]))
+    body = ";".join(f"{c[-6:]}:{o}/{i}/{f}" for c, (o, i, f) in sorted(by.items()))
+    return f"SK|{packets[-1]['c']}|{day}|{body}|{max(p['seq'] for p in packets)}"[:160]

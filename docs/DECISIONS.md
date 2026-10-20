@@ -42,6 +42,9 @@ with the reason. Numbers marked *pending* are filled from Colab runs (`eval/cola
 
 ## Door line (G420)
 
-Derived from MEVA ground-truth trajectories: entering people's feet move from ≈(1280, 750) at the right-hand doors to
-≈(1160, 870) (1920×1080 frame). The line `[[1150,700],[1400,950]]` (×2/3 for 720p → `[[767,467],[933,633]]`) cuts
-that path perpendicularly. `entry_direction` is checked against the 43 GT entries in the first Colab run.
+First line `[[767,467],[933,633]]` (720p) was drawn from one doorway only. Measured on Colab 2026-10-20: only 16 of
+the 44 GT door paths (feet of each `*_through_structure` actor, MEVA geom) cross it — most people use the middle
+doorway (feet ≈(660,455) → (570,535)) — and supervision counted entries as "out". Door recall was 0.50.
+Refit: principal axis through the midpoints of all 44 GT paths, extended 40 px each side →
+`[[559,479],[873,559]]`, which 42 of 44 paths cross; `entry_direction: in_is_right_to_left` (start→end orientation
+kept). Re-measured in the next Colab run (ACCURACY_REPORT). The same check needs doing for each new door camera.

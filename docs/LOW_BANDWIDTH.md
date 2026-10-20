@@ -14,7 +14,7 @@ returns.
 
 Measured bytes per hour per camera (from the real edge outbox of the Colab run) are in
 [`ACCURACY_REPORT.md` → Bandwidth](ACCURACY_REPORT.md#bandwidth-measured-from-the-edge-outbox).
-Whisper at 245 B/min ≈ **14.4 KB per hour per camera**, ≈ 115 KB per 8-hour training day for a door + room pair.
+Whisper at 245 B/min (self-check), **251 B/min measured** on the Colab door-camera run ≈ **15 KB per hour per camera**, ≈ 115 KB per 8-hour training day for a door + room pair.
 
 ## Store-and-forward
 

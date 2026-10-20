@@ -113,10 +113,12 @@ def test_data_gap_abstains():
 
 # --- H2 registry ---------------------------------------------------------------------------
 def test_cross_centre_duplicate():
-    known = [("TC1", "c3d1f0a29b7e4411", 10), ("TC2", "0000000000000000", 20)]
-    hits = registry.cross_centre_duplicates([("TC9", "c3d1f0a29b7e4413", 99)], known)
+    known = [("TC1", "c3d1f0a29b7e4411", 10, 1), ("TC2", "0000000000000000", 20, 2)]
+    hits = registry.cross_centre_duplicates([("TC9", "c3d1f0a29b7e4413", 99, 3)], known)
     assert len(hits) == 1 and hits[0]["other_centre"] == "TC1" and hits[0]["hamming"] == 1
-    assert registry.cross_centre_duplicates([("TC1", "c3d1f0a29b7e4411", 99)], known) == []
+    assert registry.cross_centre_duplicates([("TC1", "c3d1f0a29b7e4411", 99, 3)], known) == []
+    # the original sender is not flagged when a copier's frame (arrival 5) matches its own (arrival 1)
+    assert registry.cross_centre_duplicates([("TC1", "c3d1f0a29b7e4411", 10, 1)], [("TC9", "c3d1f0a29b7e4413", 99, 5)]) == []
 
 
 def test_clock_anomalies():

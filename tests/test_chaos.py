@@ -106,3 +106,20 @@ def test_sms_summary_fits_one_sms():
     assert s.startswith("SK|TC0421|") and len(s) <= 160
     segs = dict(x.split(":") for x in s.split("|")[3].split(";"))
     assert segs["M-ROOM"].endswith("/1") and segs["CAM1"].endswith("/0")   # frozen bit only on the room camera
+
+
+def test_moved_needs_persistence():
+    """A crowd briefly hiding the background is not a moved camera; a camera that stays shifted is."""
+    import cv2
+    import numpy as np
+    from edge.integrity import TamperState
+    rng = np.random.default_rng(0)
+    view = lambda: cv2.cvtColor(cv2.resize(rng.integers(0, 255, (90, 160), np.uint8), (1280, 720),
+                                           interpolation=cv2.INTER_NEAREST), cv2.COLOR_GRAY2BGR)
+    scene, shifted = view(), view()                      # shifted = camera now points at a different view
+    blocked = scene.copy(); blocked[:, 160:1120] = view()[:, 160:1120]   # crowd hides most of the background
+    ts = TamperState()
+    ts.check(scene, 0)                                   # reference
+    assert not ts.check(blocked, 30)["moved"]
+    assert not ts.check(scene, 60)["moved"]              # crowd gone: counter resets
+    assert [ts.check(shifted, 90 + 30 * i)["moved"] for i in range(3)] == [False, False, True]

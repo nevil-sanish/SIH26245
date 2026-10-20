@@ -31,6 +31,7 @@ class IntegrityParams:
     lap_min: float = 22.0           # Laplacian variance below this = defocused / covered
     uniform_max: float = 0.9        # share of pixels in the top-3 histogram bins above this = covered (plain walls ≈ 0.5–0.7)
     orb_min_ratio: float = 0.25     # good ORB matches / reference keypoints below this = moved
+    moved_checks: int = 3           # …for this many consecutive full checks: a crowd briefly hides the background, a moved camera stays moved
     clock_drift_s: float = 120
     clock_rate_tol: float = 0.2     # OCR clock must advance 1 ± 0.2 s per real second
     loop_hamming: int = 6
@@ -54,6 +55,7 @@ class TamperState:
     _still_since: float | None = None
     _orb: cv2.ORB = field(default_factory=lambda: cv2.ORB_create(500))
     _ref_kp: tuple | None = None
+    _low_orb: int = 0
 
     def set_reference(self, gray: np.ndarray):
         self.ref_gray = gray
@@ -87,7 +89,8 @@ class TamperState:
                 pairs = cv2.BFMatcher(cv2.NORM_HAMMING).knnMatch(self._ref_kp[1], des, k=2)
                 good = sum(1 for m in pairs if len(m) == 2 and m[0].distance < 0.75 * m[1].distance)
             out["orb_ratio"] = round(good / len(self._ref_kp[0]), 3)
-            out["moved"] = out["orb_ratio"] < self.p.orb_min_ratio
+            self._low_orb = self._low_orb + 1 if out["orb_ratio"] < self.p.orb_min_ratio else 0
+            out["moved"] = self._low_orb >= self.p.moved_checks
         return out
 
 

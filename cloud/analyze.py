@@ -160,8 +160,8 @@ def integrity_flags(db: Session, c: Centre):
     # cross-centre duplicate registry
     mine = db.scalars(select(KeyframeHash).where(KeyframeHash.centre_id == c.id)).all()
     others = db.scalars(select(KeyframeHash).where(KeyframeHash.centre_id != c.id)).all()
-    hits = registry.cross_centre_duplicates([(h.centre_id, h.phash, h.ts) for h in mine],
-                                            [(h.centre_id, h.phash, h.ts) for h in others])
+    hits = registry.cross_centre_duplicates([(h.centre_id, h.phash, h.ts, h.id) for h in mine],
+                                            [(h.centre_id, h.phash, h.ts, h.id) for h in others])
     by_day = defaultdict(list)
     for h in hits:
         by_day[datetime.fromtimestamp(h["t"], IST).strftime("%Y-%m-%d")].append(h)

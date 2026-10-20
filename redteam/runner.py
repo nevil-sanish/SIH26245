@@ -75,7 +75,9 @@ def prepare():
 VIDEO_RUNS = [
     ("TC0421", "meva_G420_door.yaml", "G420_busy", DEMO_DAY.replace(hour=12)),                       # honest
     ("TC0421", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=12)),                       # honest
-    ("TC0777", "meva_G420_door.yaml", "G420_busy", DEMO_DAY.replace(hour=12) - timedelta(days=1)),   # R4 day −1
+    # R4: the genuine recording from yesterday (clock = yesterday, device = yesterday), then the same file
+    # replayed as today's feed (clock still yesterday, device = today) → −24 h drift + cross-day loop.
+    ("TC0777", "meva_G420_door.yaml", "R4", DEMO_DAY.replace(hour=12) - timedelta(days=1)),          # R4 day −1
     ("TC0777", "meva_G420_door.yaml", "R4", DEMO_DAY.replace(hour=12)),                              # R4 replay
     ("TC0555", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=12)),                       # R5 same clip
     ("TC0612", "meva_G421_room.yaml", "R6", DEMO_DAY.replace(hour=12)),                                # R6

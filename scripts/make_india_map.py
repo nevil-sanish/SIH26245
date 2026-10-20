@@ -30,6 +30,13 @@ def dp(pts, tol):
     return dp(pts[: i + 2], tol)[:-1] + dp(pts[i + 1:], tol)
 
 
+def simplify_ring(ring, tol):
+    """Closed rings start and end on the same point, which would collapse plain DP: split at the farthest point."""
+    x0, y0 = ring[0]
+    k = max(range(len(ring)), key=lambda i: (ring[i][0] - x0) ** 2 + (ring[i][1] - y0) ** 2)
+    return dp(ring[: k + 1], tol)[:-1] + dp(ring[k:], tol)
+
+
 def main():
     sys.setrecursionlimit(100000)
     with urllib.request.urlopen(URL) as r:
@@ -40,7 +47,7 @@ def main():
     proj = lambda x, y: (round((x - LON[0]) / (LON[1] - LON[0]) * W, 1), round((LAT[1] - y) / (LAT[1] - LAT[0]) * H, 1))
     parts = []
     for poly in polys:
-        ring = dp(poly[0], TOL)
+        ring = simplify_ring(poly[0], TOL)
         if len(ring) < 4:
             continue
         parts.append("M" + "L".join(f"{a},{b}" for a, b in (proj(x, y) for x, y in ring)) + "Z")

@@ -152,7 +152,7 @@ def r9_centre_days(seed: int, noise: Noise = Noise(), days=75, inspections=3, wi
 # --------------------------------------------------------------------------------------------- video
 def ffmpeg(*args):
     # TZ=IST so the burned-in DVR clock (pts:localtime) shows centre-local time on any host.
-    subprocess.run(["ffmpeg", "-v", "error", "-y", *map(str, args)], check=True, env={**os.environ, "TZ": "Asia/Kolkata"})
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", *map(str, args)], check=True, env={**os.environ, "TZ": "Asia/Kolkata"})
 
 
 def _clock_filter(epoch: int, fontsize=40) -> str:

@@ -119,7 +119,7 @@ def build(noise: Noise):
                              for d in range(0, 76)]
         # workshop assets: full sanctioned inventory registered; story centres get usage / identity series
         if trade == "workshop":
-            for item, n in (("lathe machine", 1), ("welding machine", 2 if story != "asset_swap" else 1)):
+            for item, n in (("lathe machine", 1), ("welding machine", 2 if story != "asset_swap" else 1), ("workbench", 30)):
                 for k in range(n):
                     aid = f"{item.split()[0].upper()}-{k + 1:02d}"
                     assets.append(AssetRegistry(asset_id=f"{cid}-{aid}", centre_id=cid, label=item, zone=None,

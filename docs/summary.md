@@ -1,4 +1,4 @@
-# HANDOFF — read this first (state as of 2026-10-20 20:45 IST)
+# HANDOFF — read this first (state as of 2026-10-20 21:50 IST)
 
 You are continuing the SAKSHI build for SIH 2026 problem statement **SIH26245** (MSDE): anonymous, tamper-evident
 CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.md`](../PROMPT.md) (a copy of
@@ -48,47 +48,28 @@ the prompt is in [`DECISIONS.md`](DECISIONS.md). This file covers **where things
 - PaddleOCR reads the burned DVR clock exactly. The first edge packet had clock drift 0.0, evidence OK, and no false tamper flags.
 - Simulated red-team: all blatant fraud caught. Subtle R2b / R3b are mostly missed, on purpose (no false alarms on honest controls).
 
-## 4. RUNNING NOW
+## 4. Session 2026-10-20 evening: what was found and fixed (all verified in Colab)
 
-Started ~20:38 IST on a **T4**, in the top cell of `models/finetune_heads_colab.ipynb` (authuser=5). The cell:
-1. mounts Drive;
-2. copies `MyDrive/sakshi_models/*` → `/content/out/`;
-3. downloads `scripts/colab_gpu_runs.sh` from GitHub and runs it.
+- GPU script died at install: `edge/requirements.txt` has `-r ../cloud/requirements.txt`, broken when copied to /tmp → filtered copy now lives in `edge/`.
+- `python scripts/X.py` can't import `edge` → run them as `python -m scripts.X`.
+- Door G420 line covered one doorway only (16/44 GT paths crossed it) and direction was inverted → refit across both doorways (42/44), `in_is_right_to_left`. Door entries now P 0.977 / R 1.000.
+- `moved` fired on the honest busy door (crowds hide the background) → needs 3 consecutive low-ORB checks.
+- `cross_centre_duplicate` flagged the original centre too → only the later arrival (KeyframeHash.id) is flagged.
+- Face blur was unavailable in every run (deface needs the `onnx` package) → added `onnx==1.23.2`. Fail-closed held: no thumbnails left.
+- Lobby clip G421 03-11 11:55 is an EMPTY lobby (room occupancy 0 → honest TC0421 got ghost_session) → switched to 03-15 15:15 (busiest annotated slot); demo-day check-ins = measured room peak.
+- New: `scripts/demo_check.py` (seed §22 demo into fresh SQLite, walk the API, assert queue order / scoping). 28 tests pass.
+- Results: `docs/ACCURACY_REPORT.md`. Honest FP 0 %; all blatant fraud caught; subtle R2b/R3b missed (on purpose); head-count MAE 2.2 (target 1.5 not met); edge CPU 2.3 fps on 2 vCPU.
 
-The script runs: clone → install (Colab torch, `onnxruntime-gpu`) → clips and models from Drive → `data/download.py` → `models/download.py` → pytest → `scripts/eval_head_onnx.py` (MAE of the **deployed ONNX** head model, writes `data/work/head_onnx_check.json`) → CPU fps benchmark → `redteam.runner video` (all 7 video runs, GPU) → `eval.robustness` → `eval.metrics` → `eval.report` → `make_india_map.py` → npm lockfile → `scripts/bundle_results.py` > `/content/bundle.txt` (also copied to `MyDrive/sakshi_work/bundle.txt`).
-
-The expected finish was **~21:20–21:40 IST**. Output only appears at the end (`| tail -60`). Check progress with Colab's **Terminal** button: `ps aux | grep -E 'runner|eval|pytest'`, `ls /content/sakshi/data/edge_state`.
+Colab VM (T4, `finetune_heads_colab.ipynb`, authuser=5) holds `/content/sakshi` with all clips + edge_state. Logs: `/content/gpu.log`, `/content/rerun.log`, `/content/rerun2.log`, `/content/demo.log`. If the VM is recycled: re-run `scripts/colab_gpu_runs.sh` (clips + models come from Drive; the new lobby clip is re-made by `redteam.runner prepare`).
 
 ## 5. What is LEFT (in order)
 
-1. **Collect results.** When the cell prints `ALL_DONE`, read `/content/bundle.txt` (the text between `RESULTS_B64_BEGIN` and `RESULTS_B64_END`, the base64 of a tar.gz). Read it from the cell output with `get_page_text`, or `cat` it in a new cell. Locally: `base64 -d | tar xz` from the repo root. That restores:
-   - `docs/ACCURACY_REPORT.md`;
-   - `data/work/*.json`;
-   - `data/demo/packets.jsonl` + `device_keys.json` (measured demo data for the seeder);
-   - `models/checksums.txt`, `models/head_metrics.json`;
-   - `dashboard/package-lock.json`, `dashboard/public/india.json`.
-
-   Commit them. `.gitignore` excludes `data/work/`. Either commit the json under `data/work` with `git add -f`, or rely on the report. `data/demo/` is tracked.
-2. **Sanity-check the measured numbers** in ACCURACY_REPORT:
-   - door P/R vs MEVA GT (43 entries; if in/out are swapped, flip `entry_direction` in `edge/cameras/meva_G420_door.yaml`);
-   - honest centre TC0421 has no fraud flags;
-   - R4 (TC0777) flags clock_drift + loop;
-   - R5 (TC0555) flags cross_centre_duplicate;
-   - R6 (TC0612) flags frozen / covered;
-   - ONNX head MAE (`head_onnx_check.json`) is close to PyTorch's 2.17. If it's much worse, the cause is in `edge/detect.py` preprocessing (ImageNet mean/std, RGB, direct resize to 512).
-
-   An earlier one-image check showing "5 vs 63 heads" was probably comparing against the wrong image's annotations.
-3. **Fill DECISIONS.md "pending" rows** with the measured values: door P/R, count MAE, CPU fps (`data/work/cpu_benchmark.json`), bytes/hour. Also update the "pending" text in `LOW_BANDWIDTH.md`, `COST.md`, `PRIVACY_DESIGN.md` (the face-blur miss rate stays pending until own footage) and the README status.
-4. **Run the new tests in Colab:** `test_api.py` and the SMS test. The GPU script runs pytest; check its output line.
-5. **End-to-end demo check (§22) in Colab:** `python -m cloud.demo_seed --fresh` with SQLite, then `uvicorn cloud.api:app` plus the static dashboard. Verify:
-   - the risk queue order (TC0880 / TC0777 / TC0915 / TC0307 high; TC0421 and fillers clean);
-   - the batch view;
-   - the evidence page;
-   - the review flow;
-   - Hindi.
-
-   Docker can't run in Colab: build-check the images on a demo machine later (`docker compose up`; the seed runs automatically via `--if-empty`).
-6. **Lab scenario (TC0198):** uses the head model, `class_ids: [0]`, thr 0.35. Verify the monitor asset zone `[[300,170],[380,240]]` against a frame (`scripts/preview_calibration.py`).
+1. `data/demo/packets.jsonl` + `device_keys.json` (measured demo packets) exist only on the Colab VM: the extension blocks reading base64/signatures, and the Drive connector here is a different Google account. Bring them home via Colab's file download (needs the user's OK) or Drive sync, then commit. Without them `demo_seed` still runs (simulated only).
+2. Re-check after the lobby switch: TC0421 clean, queue order (TC0880/TC0777/TC0915/TC0307/TC0333 high). Update DECISIONS if the room counts change.
+3. Exits on the door produce ~6 FP vs 2 GT: tolerable, but tune if exits matter.
+4. Dashboard: build passes (12 routes, EN/HI keys complete: 112/112). Not clicked through in a browser yet.
+5. Docker images: build-check on a demo machine (`docker compose up`).
+6. **Lab scenario (TC0198):** the lab clip yields only 23 frames (1 packet): check `lab` clip length / sample_fps. It uses the head model, `class_ids: [0]`, thr 0.35. Verify the monitor asset zone `[[300,170],[380,240]]` against a frame (`scripts/preview_calibration.py`).
 7. **Own college footage** (when the user provides it): add camera YAMLs, label a 5-min clip, re-run `eval/robustness` and `metrics`, and report it separately.
 8. **Optional / not done:**
    - SMS gateway integration (only the builder exists);

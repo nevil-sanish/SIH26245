@@ -15,7 +15,8 @@ from cloud import demo_seed  # noqa: E402
 from cloud.api import app  # noqa: E402
 
 PW = "sakshi-demo-2026"   # demo accounts from data/demo/users.yaml
-HIGH, CLEAN = {"TC0880", "TC0777", "TC0915", "TC0307"}, "TC0421"
+CLEAN = "TC0421"
+HONEST = {CLEAN, "TC0198", "TC0101", "TC0102", "TC0103", "TC0104", "TC0105"}   # every other centre runs a fraud story
 
 
 def main():
@@ -29,10 +30,9 @@ def main():
     print("risk queue:", [(r["id"], r["risk"], [x["type"] for x in r["reasons"]][:3]) for r in q])
     for f in c.get("/v1/flags", headers=state, params={"centre": CLEAN}).json():
         print("clean-centre flag:", f["date"], f["type"], f["explanation"][:150])
-    top = {r["id"] for r in q[:len(HIGH)]}
-    clean = next(r for r in q if r["id"] == CLEAN)
-    assert top == HIGH, f"top of queue {top} != {HIGH}"
-    assert clean["risk"] < min(r["risk"] for r in q if r["id"] in HIGH), "honest TC0421 ranked with fraud centres"
+    honest = max(r["risk"] for r in q if r["id"] in HONEST)
+    fraud = min(r["risk"] for r in q if r["id"] not in HONEST)
+    assert honest < fraud, f"an honest centre (max risk {honest}) ranks with fraud centres (min {fraud})"
 
     s = c.get(f"/v1/centres/{q[0]['id']}/summary", headers=state)
     assert s.status_code == 200, s.text

@@ -54,7 +54,7 @@ def prepare():
         freeze_and_cover(CLIPS / "G421_room.mp4", r6, tuple(p["freeze_s"]), tuple(p["cover_s"]))
     out["R6"] = str(r6)
     # Robustness variants (eval/robustness.py): 360p and heavy compression of the door clip.
-    for tag, scale, crf in (("360p", "640:360", 28), ("720p_crf40", "1280:720", 40)):
+    for tag, scale, crf in (("1080p", "1920:1080", 28), ("360p", "640:360", 28), ("720p_crf40", "1280:720", 40)):
         dst = CLIPS / f"G420_busy_{tag}.mp4"
         if not dst.exists():
             burn_clock(SOURCES["G420_busy"][0], dst, SOURCES["G420_busy"][1], scale=scale, crf=crf)

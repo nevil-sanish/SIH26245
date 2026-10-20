@@ -216,7 +216,12 @@ def measured_noise(door: dict | None, count: dict | None) -> Noise:
 
 def run_all(seeds: int = 20, video: bool = True) -> dict:
     from redteam.runner import sims
-    res = {"generated": datetime.now().isoformat(timespec="seconds"), "seeds": seeds, "demo_day": DEMO_DAY.date().isoformat()}
+    import os
+    import platform
+    cpu = next((l.split(":", 1)[1].strip() for l in open("/proc/cpuinfo") if l.startswith("model name")), platform.processor()) \
+        if Path("/proc/cpuinfo").exists() else platform.processor()
+    res = {"generated": datetime.now().isoformat(timespec="seconds"), "seeds": seeds, "demo_day": DEMO_DAY.date().isoformat(),
+           "hardware": f"{cpu} · {os.cpu_count()} logical CPUs · ONNX Runtime CPU · {platform.platform()}"}
     door = count = None
     if (ROOT / "models" / "rfdetr_nano_coco.onnx").exists() and outbox_packets("TC0421", "CAM-DOOR"):
         door = door_eval()

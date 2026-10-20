@@ -151,8 +151,13 @@ def _shift(s, dt):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fresh", action="store_true", help="drop and recreate all tables first")
+    ap.add_argument("--if-empty", action="store_true", help="seed only when no centres exist (container start)")
     a = ap.parse_args()
     init_db(drop=a.fresh)
+    if a.if_empty:
+        with SessionLocal() as db:
+            if db.query(analyze.Centre).first() is not None:
+                print("demo data already present"); return
     noise = noise_from_accuracy()
     seed, obs, assets, asset_obs = build(noise)
     with SessionLocal() as db:

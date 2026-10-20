@@ -165,8 +165,10 @@ def burn_clock(src: Path, dst: Path, start: datetime, scale: str | None = None, 
     vf = [f for f in [f"scale={scale}" if scale else None, extra_vf, _clock_filter(int(start.timestamp()),
           fontsize=40 if not scale else max(14, int(scale.split(':')[1]) // 27))] if f]
     dst.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dst.with_name(dst.stem + ".part.mp4")   # rename only when complete: an interrupted encode never looks done
     ffmpeg("-i", src, *(["-t", max_s] if max_s else []), "-vf", ",".join(vf), "-an", "-c:v", "libx264",
-           "-preset", "veryfast", "-crf", crf, dst)
+           "-preset", "veryfast", "-crf", crf, tmp)
+    tmp.rename(dst)
 
 
 def freeze_and_cover(src: Path, dst: Path, freeze_s: tuple[float, float], cover_s: tuple[float, float]):
@@ -184,4 +186,6 @@ def freeze_and_cover(src: Path, dst: Path, freeze_s: tuple[float, float], cover_
            f"drawbox=enable='between(t,{c0 - f1},{c1 - f1})':x=0:y=0:w=iw:h=ih:color=black@0.97:t=fill", *enc,
            tmp / "c.mp4")
     (tmp / "list.txt").write_text("".join(f"file '{x}'\n" for x in ("a.mp4", "b.mp4", "c.mp4")))
-    ffmpeg("-f", "concat", "-safe", 0, "-i", tmp / "list.txt", "-c", "copy", dst)
+    part = dst.with_name(dst.stem + ".part.mp4")
+    ffmpeg("-f", "concat", "-safe", 0, "-i", tmp / "list.txt", "-c", "copy", part)
+    part.rename(dst)

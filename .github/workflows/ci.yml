@@ -1,0 +1,12 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  licence-and-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r cloud/requirements.txt pytest==9.1.1 opencv-python-headless==5.0.0.93 imagehash==4.3.2 pillow==13.0.0
+      - run: python scripts/check_licenses.py
+      - run: python -m pytest -q tests

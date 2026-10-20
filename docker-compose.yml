@@ -1,0 +1,29 @@
+# SAKSHI cloud side: Postgres+TimescaleDB, Mosquitto (MQTT QoS1 uplink), FastAPI, dashboard.
+# `docker compose up` → dashboard http://localhost:3000, API http://localhost:8000. Edge runs separately (`make edge-demo`).
+services:
+  db:
+    image: timescale/timescaledb:2.17.2-pg16          # Apache-2.0 edition
+    environment: {POSTGRES_USER: sakshi, POSTGRES_PASSWORD: sakshi-demo, POSTGRES_DB: sakshi}
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U sakshi"], interval: 5s, retries: 20}
+  mqtt:
+    image: eclipse-mosquitto:2.0.20                   # EPL-2.0/EDL-1.0 (EDL = BSD-3)
+    volumes: [./deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro]
+    ports: ["1883:1883"]
+  cloud:
+    build: {context: ., dockerfile: deploy/cloud.Dockerfile}
+    environment:
+      DATABASE_URL: postgresql+psycopg://sakshi:sakshi-demo@db:5432/sakshi
+      MQTT_URL: mqtt://mqtt:1883
+      SAKSHI_JWT_SECRET: ${SAKSHI_JWT_SECRET:-dev-only-change-me}
+      SAKSHI_DEV: "1"
+      CORS_ORIGINS: http://localhost:3000
+    depends_on: {db: {condition: service_healthy}, mqtt: {condition: service_started}}
+    ports: ["8000:8000"]
+    volumes: [./data:/app/data]
+  dashboard:
+    build: {context: dashboard, dockerfile: ../deploy/dashboard.Dockerfile, args: {NEXT_PUBLIC_API: "http://localhost:8000"}}
+    ports: ["3000:80"]
+    depends_on: [cloud]
+volumes:
+  dbdata: {}

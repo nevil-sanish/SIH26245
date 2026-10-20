@@ -39,5 +39,5 @@ integration is a stub (no SMS provider is bundled).*
 
 ## Bandwidth knobs
 
-`sample_fps` (door 8, room 1), packet interval (60 s), tier (`--tier whisper|normal`), keyframe interval (5 min),
+`sample_fps` (door 5, room 1), packet interval (60 s), tier (`--tier whisper|normal`), keyframe interval (5 min),
 asset scan interval (15 min) — all per camera.

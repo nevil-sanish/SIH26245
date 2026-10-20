@@ -8,7 +8,7 @@ Most centres already have CCTV. SAKSHI needs **two views per training room**; ev
 - Mounted 2.5–3.5 m high, looking **across** the doorway at 30–60° down, so people walk *through* the frame, not
   straight at the lens. Whole body visible for ~2 m on both sides of the threshold.
 - Door line drawn on the floor just inside the threshold (calibration UI), perpendicular to the walking path.
-- ≥ 720p, ≥ 8 fps for the door ROI; IR on for evening batches.
+- ≥ 720p, ≥ 5 fps for the door ROI (edge samples 5 fps); IR on for evening batches.
 
 ## 2. Room camera (occupancy, trainer zone, equipment)
 

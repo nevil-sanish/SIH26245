@@ -6,8 +6,8 @@ set -euo pipefail
 W=/content/drive/MyDrive/sakshi_work
 cd /content && rm -rf sakshi && git clone -q --depth 1 https://github.com/nevil-sanish/SIH26245.git sakshi && cd sakshi
 git log --oneline -1
-grep -vE '^(torch|torchvision|onnxruntime)==' edge/requirements.txt > /tmp/req.txt   # keep Colab's CUDA torch
-pip install -q -r /tmp/req.txt 2>&1 | tail -2
+grep -vE '^(torch|torchvision|onnxruntime)==' edge/requirements.txt > edge/req_gpu.txt   # keep Colab's CUDA torch
+pip install -q -r edge/req_gpu.txt 2>&1 | tail -2
 pip uninstall -y -q onnxruntime || true
 pip install -q onnxruntime-gpu==1.31.0
 python -c "import onnxruntime as o; print('ORT providers', o.get_available_providers())"

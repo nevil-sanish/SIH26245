@@ -156,7 +156,7 @@ def run(cfg: CameraConfig, state: Path, uplink: str | None, tier: str = "whisper
         emit(last_bucket)
     outbox.drain()
     wall = time.time() - t_start_wall
-    summary = {"summary": cfg.camera_id, "frames": n_frames, "wall_s": round(wall, 1),
+    summary = {"summary": cfg.camera_id, "frames": n_frames, "wall_s": round(wall, 1), "provider": detector.provider,
                "fps_measured": round(n_frames / wall, 2) if wall else None,
                "packets": len(sent_packets), "mean_packet_bytes": round(float(np.mean(sent_packets)), 1) if sent_packets else 0,
                "pending": outbox.pending(), "unavailable": unavailable}

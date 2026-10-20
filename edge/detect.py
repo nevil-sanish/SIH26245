@@ -33,7 +33,12 @@ class Detector:
             raise ModuleUnavailable(f"model missing: {model_path} — run `make setup`")
         so = ort.SessionOptions()
         so.intra_op_num_threads = threads or os.cpu_count() or 1   # more threads than cores only adds contention
-        self.sess = ort.InferenceSession(model_path, so, providers=["CPUExecutionProvider"])
+        # Edge default is CPU. SAKSHI_GPU=1 (batch evaluation only) uses CUDA when available: same graph, same outputs.
+        prov = ["CPUExecutionProvider"]
+        if os.environ.get("SAKSHI_GPU") == "1" and "CUDAExecutionProvider" in ort.get_available_providers():
+            prov = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        self.sess = ort.InferenceSession(model_path, so, providers=prov)
+        self.provider = self.sess.get_providers()[0]
         inp = self.sess.get_inputs()[0]
         self.input_name = inp.name
         self.h, self.w = int(inp.shape[2]), int(inp.shape[3])

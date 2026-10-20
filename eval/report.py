@@ -87,11 +87,11 @@ def render(r: dict) -> str:
             L.append(f"| {cam} | {b['packets']} | {_f(b['whisper_mean_B'])} | {_f(b['whisper_KB_per_hour'])} | "
                      f"{_f(b['observed_KB_per_hour'])} |")
     if r.get("edge_runs"):
-        L += ["", "## Edge runs (measured)", "", "| Centre | Camera | Clip | Frames | fps | Packets | Unavailable modules |",
-              "|---|---|---|---|---|---|---|"]
+        L += ["", "## Edge runs (measured)", "", "| Centre | Camera | Clip | Frames | fps | Detector provider | Packets | Unavailable modules |",
+              "|---|---|---|---|---|---|---|---|"]
         for e in r["edge_runs"]:
             L.append(f"| {e['centre']} | {e['camera']} | {e['clip']} | {e['frames']} | {e['fps_measured']} | "
-                     f"{e['packets']} | {', '.join(e['unavailable']) or '—'} |")
+                     f"{e.get('provider', 'CPUExecutionProvider')} | {e['packets']} | {', '.join(e['unavailable']) or '—'} |")
     L += ["", "## Hardware", "", r.get("hardware", "—"), "",
           "## Known limits", "",
           "- MEVA is US school footage with adult actors; Indian skilling-centre footage (own recordings) will be "

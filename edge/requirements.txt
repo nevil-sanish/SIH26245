@@ -7,6 +7,7 @@ trackers==2.6.1
 imagehash==4.3.2
 pillow==13.0.0
 deface==1.5.0
+onnx==1.23.2                # deface CenterFace loads its model via onnx (Apache-2.0)
 paddlepaddle==3.3.1
 paddleocr==3.7.0
 torch==2.14.1

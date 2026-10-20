@@ -1,0 +1,11 @@
+{
+  "chosen_threshold": 0.35,
+  "valid_mae_by_threshold": {"0.2": 6.918, "0.25": 3.306, "0.3": 1.885, "0.35": 1.665, "0.4": 2.1, "0.45": 2.879, "0.5": 3.747, "0.55": 4.835, "0.6": 6.144, "0.65": 8.071, "0.7": 11.321},
+  "resolution": 512,
+  "epochs": 30,
+  "test_A_classroom": {"images": 500, "mean_heads": 34.434, "count_mae": 2.168, "count_mae_pct": 5.933},
+  "test_B_web": {"images": 500, "mean_heads": 18.892, "count_mae": 1.366, "count_mae_pct": 5.868},
+  "test_A_coco_metrics": {"test/mAP_50_95": 0.3613, "test/mAP_50": 0.8614, "test/mAP_75": 0.2138, "test/mAR": 0.4491, "test/F1": 0.8475, "test/precision": 0.8835, "test/recall": 0.8144},
+  "onnx_check_test_A": {"provider": "CUDAExecutionProvider", "mae_by_threshold": {"0.2": 8.716, "0.25": 3.398, "0.3": 1.862, "0.35": 2.206, "0.4": 3.318, "0.5": 6.24}},
+  "gpu": ["Tesla T4"]
+}

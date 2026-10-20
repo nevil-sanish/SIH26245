@@ -33,7 +33,7 @@ with the reason. Numbers marked *pending* are filled from Colab runs (`eval/cola
 | Honest-control FP of `unmatched_checkin` | 20–35 % with a fixed 10 % threshold at 90 % door recall → replaced by a binomial test against the *measured* recall: 1/120 | redteam sims, 2026-10-20 |
 | `react-leaflet` licence | Hippocratic-2.1 → rejected | npm registry, 2026-10-20 |
 | Edge CPU fps `[Guessing]` | **2.3 fps** on Colab's 2 vCPU (door camera, RF-DETR Nano COCO @384 + OCR, 1 min, 251 B per packet); target-PC figure still to measure | `data/work/cpu_benchmark.json`, Colab 2026-10-20 |
-| Door P/R | *pending* | — |
+| Door P/R (MEVA G420, 42 in / 2 out, ±4 s) | entries **P 0.977 / R 1.000**; exits P 0.25 (6 FP vs 2 GT: people turning back at the line); any-direction 0.863 / 1.000 at 720p, 0.913 / 0.955 in low light | ACCURACY_REPORT, Colab T4 2026-10-20 |
 | Count MAE (SCUT-HEAD Part A test, 500 images, mean 34.4 heads) | deployed ONNX via `edge.detect`: **2.21 @ thr 0.35** (PyTorch 2.17); best 1.86 @ 0.30 | `scripts/eval_head_onnx.py`, Colab T4 2026-10-20 |
 | ₹ per trainee-hour `[Likely]` | **assumption ₹50** until a PMKVY cost-norm citation is added (`cloud/engines/risk.py`) | — |
 | QP codes for demo trades `[Likely]` | SSC/Q2212, AMH/Q0301, ELE/Q3104 — **mock**, to verify against NSDC QP documents | — |

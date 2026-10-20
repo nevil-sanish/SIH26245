@@ -36,6 +36,7 @@ YOLOv8/11/26 and BoxMOT (AGPL-3.0), YOLO-World (GPL-3.0), react-leaflet (Hippocr
 | httpx | 0.28.1 | BSD-3-Clause |
 | paho-mqtt | 2.1.0 | EPL-2.0 / EDL-1.0 (EDL = BSD-3-Clause; used under EDL) |
 | onnxruntime | 1.31.0 | MIT |
+| onnx | 1.23.2 | Apache-2.0 |
 | opencv-python-headless | 5.0.0.93 | Apache-2.0 |
 | supervision | 0.31.0 | MIT |
 | trackers | 2.6.1 | Apache-2.0 |

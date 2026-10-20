@@ -30,7 +30,8 @@ dashboard http://localhost:3000 (accounts in `data/demo/users.yaml`), API http:/
 ## Status
 
 Built: edge pipeline, cloud API + engines, red-team simulator, evaluation suite, dashboard (EN/HI), docs.
-Pending from Colab runs: head-model metrics, measured door P/R / count MAE / fps / bytes-per-hour, demo packets.
+Measured in Colab (`docs/ACCURACY_REPORT.md`): door entries P 0.98 / R 1.00 on MEVA, per-frame count MAE 0.89, head-count MAE 2.2 on
+SCUT-HEAD classroom images, honest-control false-flag rate 0 %, edge 2.3 fps on 2 CPU cores, ≈ 17–19 KB/h per camera.
 Own college footage: to be added; every eval script re-runs on it unchanged.
 
 Data attribution: MEVA dataset by Kitware Inc. and IARPA, CC BY 4.0.

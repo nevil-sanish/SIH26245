@@ -1,0 +1,2 @@
+{ "name": "SAKSHI Inspector", "short_name": "SAKSHI", "start_url": "/inspector/", "display": "standalone",
+  "background_color": "#ffffff", "theme_color": "#0072B2", "icons": [] }

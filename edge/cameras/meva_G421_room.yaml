@@ -3,7 +3,7 @@ camera_id: CAM-ROOM
 centre_id: TC0421
 role: room
 source: data/work/clips/G421_room.mp4
-start_time: "2026-10-19T11:55:01"
+start_time: "2026-10-19T12:00:00"
 sample_fps: 1
 detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35, tile: 640}
 room_polygon: [[0, 200], [1280, 200], [1280, 720], [0, 720]]

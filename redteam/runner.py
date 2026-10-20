@@ -27,7 +27,8 @@ MEVA = RAW / "meva"
 SOURCES = {
     "G420_busy": (MEVA / "2018-03-11.12-00-00.12-05-00.school.G420.r13.avi", DEMO_DAY.replace(hour=12)),
     "G420_exits": (MEVA / "2018-03-11.11-15-00.11-20-00.school.G420.r13.avi", DEMO_DAY.replace(hour=11, minute=15)),
-    "G421_room": (MEVA / "2018-03-11.11-55-01.12-00-01.school.G421.r13.avi", DEMO_DAY.replace(hour=11, minute=55, second=1)),
+    # Lobby clip is the adjacent MEVA slot (11:55); re-stamped onto 12:00 so door + room cover one demo session.
+    "G421_room": (MEVA / "2018-03-11.11-55-01.12-00-01.school.G421.r13.avi", DEMO_DAY.replace(hour=12)),
     "lab": (RAW / "commons" / "mexico_computer_lab.ogv", DEMO_DAY.replace(hour=10)),
     "lab_india": (RAW / "commons" / "india_computer_lab.ogv", DEMO_DAY.replace(hour=10)),
 }
@@ -72,11 +73,11 @@ def prepare():
 # 7-day pHash index, then the replay with yesterday's clock runs "today".
 VIDEO_RUNS = [
     ("TC0421", "meva_G420_door.yaml", "G420_busy", DEMO_DAY.replace(hour=12)),                       # honest
-    ("TC0421", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=11, minute=55, second=1)),   # honest
+    ("TC0421", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=12)),                       # honest
     ("TC0777", "meva_G420_door.yaml", "G420_busy", DEMO_DAY.replace(hour=12) - timedelta(days=1)),   # R4 day −1
     ("TC0777", "meva_G420_door.yaml", "R4", DEMO_DAY.replace(hour=12)),                              # R4 replay
-    ("TC0555", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=11, minute=55, second=1)),   # R5 same clip
-    ("TC0612", "meva_G421_room.yaml", "R6", DEMO_DAY.replace(hour=11, minute=55, second=1)),          # R6
+    ("TC0555", "meva_G421_room.yaml", "G421_room", DEMO_DAY.replace(hour=12)),                       # R5 same clip
+    ("TC0612", "meva_G421_room.yaml", "R6", DEMO_DAY.replace(hour=12)),                                # R6
     ("TC0198", "lab_room.yaml", "lab", DEMO_DAY.replace(hour=10)),                                    # lab (assets)
 ]
 
@@ -96,7 +97,25 @@ def video(uplink: str | None, only: list[str] | None = None):
     log = ROOT / "data" / "work" / "edge_runs.json"
     log.parent.mkdir(parents=True, exist_ok=True)
     log.write_text(json.dumps(results, indent=1))
+    export_demo()
     return results
+
+
+def export_demo():
+    """Signed packets + device public keys of every video run → data/demo/ (text, committed) for the demo seed."""
+    import sqlite3
+    from edge.packet import load_or_create_key, public_key_b64
+    out = ROOT / "data" / "demo"
+    out.mkdir(parents=True, exist_ok=True)
+    keys, n = {}, 0
+    with open(out / "packets.jsonl", "w") as f:
+        for centre in sorted({c for c, *_ in VIDEO_RUNS}):
+            st = ROOT / "data" / "edge_state" / centre
+            keys[centre] = public_key_b64(load_or_create_key(st / "device.key"))
+            for (body,) in sqlite3.connect(st / "outbox.sqlite").execute("SELECT body FROM outbox ORDER BY cam, seq"):
+                f.write(body + "\n"); n += 1
+    (out / "device_keys.json").write_text(json.dumps(keys, indent=1))
+    print(f"exported {n} packets for {len(keys)} centres → data/demo/")
 
 
 def sims(seeds: int = 20, noise: Noise = Noise()) -> list[dict]:

@@ -16,8 +16,8 @@ from nacl.signing import SigningKey
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from cloud.db import (Camera, Centre, DataGap, DoorEvent, IntegrityEvent, KeyframeHash, OccupancySample, Packet,
-                      ROOT)
+from cloud.db import (AssetObservation, Camera, Centre, DataGap, DoorEvent, IntegrityEvent, KeyframeHash,
+                      OccupancySample, Packet, ROOT)
 from edge.packet import canonical, chain_hash, verify
 
 SERVER_KEY_PATH = Path(ROOT / "data" / "server.key")
@@ -134,3 +134,15 @@ def _expand(db: Session, p: dict, label: str):
         db.add(IntegrityEvent(centre_id=c, cam=cam, ts=t, kind="clock_reading", value={"drift": p["clk"]}, label=label))
     if p.get("ph"):
         db.add(KeyframeHash(centre_id=c, cam=cam, ts=t, phash=p["ph"]))
+    # Asset use seconds and identity scores → one observation row per asset per day (scheduled practical
+    # time is filled from the timetable by cloud/analyze.py).
+    date = datetime.fromtimestamp(t).strftime("%Y-%m-%d")
+    for aid in set(p.get("use") or {}) | set(p.get("aid") or {}):
+        o = db.scalars(select(AssetObservation).where(AssetObservation.centre_id == c, AssetObservation.asset_id == aid,
+                                                      AssetObservation.date == date)).first()
+        if o is None:
+            o = AssetObservation(centre_id=c, asset_id=aid, date=date, interaction_s=0, scheduled_practical_s=0, label=label)
+            db.add(o)
+        o.interaction_s = (o.interaction_s or 0) + (p.get("use") or {}).get(aid, 0)
+        if (p.get("aid") or {}).get(aid) is not None:
+            o.identity_score = p["aid"][aid]

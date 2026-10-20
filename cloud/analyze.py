@@ -92,7 +92,10 @@ def reconcile_batch_day(db: Session, b: Batch, date: str, p: Params = Params()) 
         pk = db.scalars(select(Packet.body).where(Packet.centre_id == b.centre_id, Packet.cam == cam,
                                                   Packet.t >= start - pre, Packet.t < end)).all()
         if not pk:
-            return False
+            # Red-team history is written as simulated observation rows without packets; it may pass the
+            # evidence check. Measured data must always arrive as signed packets.
+            rows = door_rows if cam == b.door_cam else occ_rows
+            return bool(rows) and all(r.label == "simulated" for r in rows)
         bad = sum(1 for x in pk if x.get("ev") == "INSUFFICIENT")
         return bad / len(pk) < 0.2
 
@@ -169,9 +172,19 @@ def integrity_flags(db: Session, c: Centre):
                     {"matches": hs[:10]}, "measured")
 
 
+def _practical_seconds(db: Session, centre_id: str, date: str) -> float:
+    d0, d1 = _day_bounds(date)
+    ids = [b.id for b in db.scalars(select(Batch).where(Batch.centre_id == centre_id))]
+    return float(sum(s.end - s.start for s in db.scalars(select(TimetableSlot).where(
+        TimetableSlot.batch_id.in_(ids), TimetableSlot.kind == "practical", TimetableSlot.start >= d0, TimetableSlot.start < d1))))
+
+
 def asset_flags(db: Session, c: Centre):
     obs = db.scalars(select(AssetObservation).where(AssetObservation.centre_id == c.id)
                      .order_by(AssetObservation.date)).all()
+    for o in obs:
+        if not o.scheduled_practical_s:
+            o.scheduled_practical_s = _practical_seconds(db, c.id, o.date)
     by = defaultdict(list)
     for o in obs:
         by[o.asset_id].append(o)

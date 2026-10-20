@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 from cloud.db import AuditLog, Case, CaseAction, Flag
 
 OFFICER_ACTIONS = {"confirm": "confirmed", "false_alarm": "false_alarm",
-                   "request_response": "awaiting_centre", "close": "closed", "assign": None}
+                   "request_response": "awaiting_centre", "close": "closed", "assign": None,
+                   "site_check": None}   # inspector ticked the item on site: logged, no status change
 CENTRE_ACTIONS = {"centre_response": "open", "appeal": "open"}
 
 

@@ -1,0 +1,9 @@
+# DEMO accounts only (seeded by `python -m cloud.demo_seed`). Change or remove before any real deployment.
+# Shared demo password for every account: sakshi-demo-2026
+users:
+  - {username: admin,      role: admin,            password: sakshi-demo-2026}
+  - {username: state,      role: state_monitor,    password: sakshi-demo-2026}
+  - {username: district,   role: district_officer, password: sakshi-demo-2026}
+  - {username: inspector1, role: inspector,        password: sakshi-demo-2026}
+  - {username: tc0421,     role: centre_operator,  centre_id: TC0421, password: sakshi-demo-2026}
+  - {username: tc0880,     role: centre_operator,  centre_id: TC0880, password: sakshi-demo-2026}

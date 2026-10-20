@@ -321,7 +321,7 @@ def flag_evidence(fid: int, u=Depends(user), db=Depends(db_session)):
 
 
 class Review(BaseModel):
-    action: str                    # confirm | false_alarm | request_response | assign | close
+    action: str                    # confirm | false_alarm | request_response | assign | site_check | close
     note: str | None = None
     assignee: str | None = None
 

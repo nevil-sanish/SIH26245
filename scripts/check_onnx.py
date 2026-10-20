@@ -1,5 +1,5 @@
 """Sanity-check an exported RF-DETR ONNX before long runs: I/O names + shapes, and which class columns fire on a
-real frame.  python scripts/check_onnx.py models/rfdetr_nano_coco.onnx data/work/clips/G420_busy.mp4 [t_s]"""
+real frame.  python -m scripts.check_onnx models/rfdetr_nano_coco.onnx data/work/clips/G420_busy.mp4 [t_s]"""
 import sys
 
 import cv2

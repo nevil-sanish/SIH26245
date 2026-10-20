@@ -1,6 +1,6 @@
 """Head-count MAE of the *deployed* ONNX head model (edge.detect.Detector) on SCUT-HEAD Part A test (classroom CCTV).
 The Colab fine-tune reports PyTorch metrics; this checks the exported artifact the edge actually runs.
-Writes data/work/head_onnx_check.json.   python scripts/eval_head_onnx.py [--max 500]
+Writes data/work/head_onnx_check.json.   python -m scripts.eval_head_onnx [--max 500]
 """
 import argparse
 import json

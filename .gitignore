@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.next/
+data/raw/
+data/work/
+data/edge_state/
+models/*.onnx
+models/*.pth
+models/hf/
+*.db
+*.sqlite
+.env

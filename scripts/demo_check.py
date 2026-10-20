@@ -27,6 +27,8 @@ def main():
 
     q = c.get("/v1/risk-queue", headers=state).json()
     print("risk queue:", [(r["id"], r["risk"], [x["type"] for x in r["reasons"]][:3]) for r in q])
+    for f in c.get("/v1/flags", headers=state, params={"centre": CLEAN}).json():
+        print("clean-centre flag:", f["date"], f["type"], f["explanation"][:150])
     top = {r["id"] for r in q[:len(HIGH)]}
     clean = next(r for r in q if r["id"] == CLEAN)
     assert top == HIGH, f"top of queue {top} != {HIGH}"

@@ -20,7 +20,7 @@ python models/download.py --onnx-from /content/out --write-checksums
 
 python -m pytest -q tests 2>&1 | tail -3
 pip install -q gdown==5.2.0
-SAKSHI_GPU=1 python scripts/eval_head_onnx.py | grep HEAD_ONNX
+SAKSHI_GPU=1 python scripts/eval_head_onnx.py 2>&1 | grep -E "HEAD_ONNX|Error" || echo HEAD_ONNX_CHECK_FAILED
 
 # CPU benchmark: 1 minute of the door clip on this VM's CPU (no GPU), honest edge fps.
 python -m edge.run --camera edge/cameras/meva_G420_door.yaml --state /tmp/cpu_bench --max-minutes 1 --quiet \

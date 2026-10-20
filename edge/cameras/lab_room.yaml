@@ -3,8 +3,8 @@
 camera_id: CAM-LAB
 centre_id: TC0198
 role: room
-source: data/work/clips/lab_mexico.mp4
-start_time: "2026-10-12T10:00:00"
+source: data/work/clips/lab.mp4
+start_time: "2026-10-19T10:00:00"
 sample_fps: 2
 detect: {model: models/rfdetr_nano_head.onnx, class_ids: [1], threshold: 0.4}
 room_polygon: [[0, 0], [568, 0], [568, 320], [0, 320]]

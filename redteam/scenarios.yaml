@@ -15,6 +15,12 @@ scenarios:
        params: {checkins: 30, present: 18}}
   R3: {name: "Check-in and leave", level: event, expect: [checkin_then_leave, trainee_hours_gap],
        params: {present: 30, leave: 20, leave_after_min: 20}}
+  R1b: {name: "Bulk check-in into a half-full room (subtle)", level: event, expect: [unmatched_checkin, burst, inflation],
+        params: {checkins: 12, burst_s: 50, present: 18, honest_checkins: true}}
+  R2b: {name: "Mild proxying: 3 of 30 absent (subtle)", level: event, expect: [unmatched_checkin, inflation, trainee_hours_gap],
+        params: {checkins: 30, present: 27}}
+  R3b: {name: "Small walk-out: 5 of 30 leave (subtle)", level: event, expect: [checkin_then_leave, trainee_hours_gap],
+        params: {present: 30, leave: 5, leave_after_min: 20}}
   R4: {name: "Replayed footage (yesterday's DVR clip)", level: video, expect: [clock_drift, loop],
        params: {clip: G420_busy, replay_offset_days: 1}}
   R5: {name: "Same clip from two centres", level: video, expect: [cross_centre_duplicate],

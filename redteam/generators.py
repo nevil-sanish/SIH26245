@@ -50,9 +50,10 @@ def event_session(sid: str, seed: int, noise: Noise = Noise(), day: datetime | N
     arrive = np.sort(start - 600 + rng.uniform(0, d["arrival_spread_min"] * 60, present))
     lo, hi = d["checkin_delay_s"]
     honest_ck = list(arrive + rng.uniform(lo, hi, present))
-    if sid == "R1":
-        checkins = list(start + np.sort(rng.uniform(0, p["burst_s"], n_check)))
-    elif sid == "R2":
+    if sid.startswith("R1"):
+        burst = list(start + np.sort(rng.uniform(0, p["burst_s"], n_check)))
+        checkins = (honest_ck + burst) if p.get("honest_checkins") else burst
+    elif sid.startswith("R2"):
         extra = n_check - present
         checkins = honest_ck + list(start - 600 + rng.uniform(0, 1500, extra))  # proxies spread out, no entry
     else:
@@ -65,7 +66,7 @@ def event_session(sid: str, seed: int, noise: Noise = Noise(), day: datetime | N
     people = np.zeros(occ_t.size)
     for a in arrive:
         people += occ_t >= a
-    if sid == "R3":
+    if sid.startswith("R3"):
         t_leave = start + p["leave_after_min"] * 60 + 900
         lv = np.sort(t_leave + rng.uniform(0, 300, p["leave"]))
         exits = list(lv)

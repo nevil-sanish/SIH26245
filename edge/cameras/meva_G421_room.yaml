@@ -2,10 +2,10 @@
 camera_id: CAM-ROOM
 centre_id: TC0421
 role: room
-source: data/work/clips/G421_2018-03-11_1155.mp4
-start_time: "2018-03-11T11:55:01"
+source: data/work/clips/G421_room.mp4
+start_time: "2026-10-19T11:55:01"
 sample_fps: 1
-detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35, tile: 960}
-room_polygon: [[0, 300], [1920, 300], [1920, 1080], [0, 1080]]
-timestamp_roi: [16, 16, 620, 64]
+detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35, tile: 640}
+room_polygon: [[0, 200], [1280, 200], [1280, 720], [0, 720]]
+timestamp_roi: [14, 12, 340, 44]
 timestamp_format: "%d-%m-%Y %H:%M:%S"

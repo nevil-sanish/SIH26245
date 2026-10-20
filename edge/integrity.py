@@ -23,10 +23,11 @@ from PIL import Image
 
 @dataclass
 class IntegrityParams:
-    noise_floor: float = 0.6        # mean abs diff (0–255) below which two frames are "identical"
+    noise_floor: float = 0.05       # mean abs diff (0–255) below which two frames are "identical": a live feed's
+                                    # ticking DVR clock alone exceeds this; a stuck encoder repeats frames exactly
     frozen_s: float = 20            # identical for longer than this = frozen
     lap_min: float = 22.0           # Laplacian variance below this = defocused / covered
-    uniform_max: float = 0.6        # share of pixels in the top-3 histogram bins above this = covered
+    uniform_max: float = 0.9        # share of pixels in the top-3 histogram bins above this = covered (plain walls ≈ 0.5–0.7)
     orb_min_ratio: float = 0.25     # good ORB matches / reference keypoints below this = moved
     clock_drift_s: float = 120
     clock_rate_tol: float = 0.2     # OCR clock must advance 1 ± 0.2 s per real second
@@ -57,8 +58,9 @@ class TamperState:
         kp, des = self._orb.detectAndCompute(gray, None)
         self._ref_kp = (kp, des)
 
-    def check(self, frame_bgr: np.ndarray, t: float) -> dict:
-        """Return {'frozen','covered','moved'} booleans plus raw measurements for this frame."""
+    def check(self, frame_bgr: np.ndarray, t: float, full: bool = True) -> dict:
+        """Return {'frozen','covered','moved'} booleans plus raw measurements for this frame.
+        full=False only updates the frozen timer (cheap, every frame); full=True also runs covered + ORB moved."""
         gray = cv2.cvtColor(cv2.resize(frame_bgr, (320, 180)), cv2.COLOR_BGR2GRAY)
         out = {"sharpness": round(sharpness(gray), 1), "uniformity": round(uniformity(gray), 3)}
         if self._prev is not None:
@@ -70,6 +72,8 @@ class TamperState:
                 self._still_since = None
         self._prev = gray.astype(np.int16)
         out["frozen"] = bool(self._still_since is not None and t - self._still_since > self.p.frozen_s)
+        if not full:
+            return out
         out["covered"] = out["sharpness"] < self.p.lap_min or out["uniformity"] > self.p.uniform_max
         out["moved"] = False
         if self._ref_kp is None:

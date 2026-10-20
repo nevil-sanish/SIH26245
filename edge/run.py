@@ -124,7 +124,7 @@ def run(cfg: CameraConfig, state: Path, uplink: str | None, tier: str = "whisper
                     flags_min.add(k); thumb_frame = frame
         else:
             # frozen needs continuous evidence: keep feeding the diff cheaply
-            r = tamper.check(frame, t)
+            r = tamper.check(frame, t, full=False)
             if r["frozen"]:
                 flags_min.add("frozen")
         if reader and reader.available and t - last["ocr"] >= ocr_every:

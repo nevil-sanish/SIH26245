@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ["docs/ACCURACY_REPORT.md", "models/checksums.txt", "models/head_metrics.json", "data/work/accuracy.json",
-         "data/work/robustness.json", "data/work/edge_runs.json", "data/demo/packets.jsonl", "data/demo/device_keys.json",
+         "data/work/robustness.json", "data/work/head_onnx_check.json", "data/work/cpu_benchmark.json", "data/work/edge_runs.json", "data/demo/packets.jsonl", "data/demo/device_keys.json",
          "dashboard/package-lock.json", "dashboard/public/india.json"]
 
 buf = io.BytesIO()

@@ -242,6 +242,8 @@ def run_all(seeds: int = 20, video: bool = True) -> dict:
     res["head_model"] = json.loads(hm.read_text()) if hm.exists() else None
     rb = ROOT / "data" / "work" / "robustness.json"
     res["robustness"] = json.loads(rb.read_text()) if rb.exists() else None
+    ho = ROOT / "data" / "work" / "head_onnx_check.json"
+    res["head_onnx"] = json.loads(ho.read_text()) if ho.exists() else None
     cpu = ROOT / "data" / "work" / "cpu_benchmark.json"
     res["cpu_benchmark"] = json.loads(cpu.read_text()) if cpu.exists() else None
     runs = ROOT / "data" / "work" / "edge_runs.json"

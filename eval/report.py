@@ -39,6 +39,11 @@ def render(r: dict) -> str:
         L.append(f"| Head-count MAE, SCUT-HEAD Part A test (classroom CCTV, {a['images']} images, "
                  f"mean {a['mean_heads']:.1f} heads) — measured in Colab | {_f(a['count_mae'])} "
                  f"({a['count_mae_pct']:.1f} %) | ≤ 1.5 (reference 1.23) |")
+    ho = r.get("head_onnx")
+    if ho:
+        best = min(ho["mae_by_threshold"], key=ho["mae_by_threshold"].get)
+        L.append(f"| Head-count MAE, deployed **ONNX** head model, SCUT-HEAD Part A test ({ho['images']} images) | "
+                 f"{ho['mae_by_threshold'].get('0.35', ho['mae_by_threshold'].get(0.35))} at thr 0.35 (best {ho['mae_by_threshold'][best]} at {best}) | ≤ 1.5 |")
     L += ["", "The fraud FN rate deliberately includes *subtle* variants (R1b–R3b) that sit below the "
           "detection threshold. They show where the system stops seeing fraud; the blatant cases are "
           "listed separately below.", ""]

@@ -10,6 +10,7 @@ Fail loudly (PROMPT §5.3): a missing model raises ModuleUnavailable; the caller
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import cv2
@@ -27,11 +28,11 @@ class ModuleUnavailable(RuntimeError):
 
 class Detector:
     def __init__(self, model_path: str, class_ids: list[int], threshold: float = 0.4,
-                 tile: int | None = None, threads: int = 4):
+                 tile: int | None = None, threads: int | None = None):
         if not Path(model_path).exists():
             raise ModuleUnavailable(f"model missing: {model_path} — run `make setup`")
         so = ort.SessionOptions()
-        so.intra_op_num_threads = threads
+        so.intra_op_num_threads = threads or os.cpu_count() or 1   # more threads than cores only adds contention
         self.sess = ort.InferenceSession(model_path, so, providers=["CPUExecutionProvider"])
         inp = self.sess.get_inputs()[0]
         self.input_name = inp.name

@@ -39,7 +39,7 @@ def run(cfg: CameraConfig, state: Path, uplink: str | None, tier: str = "whisper
                             det_cfg.get("threshold", 0.4), det_cfg.get("tile"))
     except ModuleUnavailable as e:
         raise SystemExit(f"[{cfg.camera_id}] detection module unavailable: {e}")  # fail loudly
-    fps = cfg.sample_fps or (8 if cfg.role == "door" else 1)
+    fps = cfg.sample_fps or (5 if cfg.role == "door" else 1)
     tracker = SessionTracker(fps) if cfg.role == "door" else None
     zones = Zones(cfg)
     events = EventBuilder([a["asset_id"] for a in cfg.assets])

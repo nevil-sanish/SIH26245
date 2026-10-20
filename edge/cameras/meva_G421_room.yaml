@@ -5,7 +5,7 @@ role: room
 source: data/work/clips/G421_room.mp4
 start_time: "2026-10-19T12:00:00"
 sample_fps: 1
-detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35, tile: 640}
+detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.35}   # people are 80–150 px tall: no tiling needed
 room_polygon: [[0, 200], [1280, 200], [1280, 720], [0, 720]]
 timestamp_roi: [14, 12, 340, 44]
 timestamp_format: "%d-%m-%Y %H:%M:%S"

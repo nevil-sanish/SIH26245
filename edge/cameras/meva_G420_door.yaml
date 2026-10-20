@@ -5,7 +5,7 @@ centre_id: TC0421
 role: door
 source: data/work/clips/G420_busy.mp4
 start_time: "2026-10-19T12:00:00"
-sample_fps: 8
+sample_fps: 5
 detect: {model: models/rfdetr_nano_coco.onnx, class_ids: [1], threshold: 0.4}
 door_line: [[767, 467], [933, 633]]
 entry_direction: in_is_left_to_right

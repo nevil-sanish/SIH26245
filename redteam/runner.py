@@ -99,7 +99,9 @@ def video(uplink: str | None, only: list[str] | None = None):
         results.append({"centre": centre, "camera": cfg.camera_id, "clip": clip, **s})
     log = ROOT / "data" / "work" / "edge_runs.json"
     log.parent.mkdir(parents=True, exist_ok=True)
-    log.write_text(json.dumps(results, indent=1))
+    old = json.loads(log.read_text()) if log.exists() else []
+    keep = {(r["centre"], r["camera"], r["clip"]) for r in results}
+    log.write_text(json.dumps([r for r in old if (r["centre"], r["camera"], r["clip"]) not in keep] + results, indent=1))
     export_demo()
     return results
 
@@ -114,6 +116,8 @@ def export_demo():
     with open(out / "packets.jsonl", "w") as f:
         for centre in sorted({c for c, *_ in VIDEO_RUNS}):
             st = ROOT / "data" / "edge_state" / centre
+            if not (st / "outbox.sqlite").exists():
+                continue                       # scenario not run yet
             keys[centre] = public_key_b64(load_or_create_key(st / "device.key"))
             for (body,) in sqlite3.connect(st / "outbox.sqlite").execute("SELECT body FROM outbox ORDER BY cam, seq"):
                 f.write(body + "\n"); n += 1

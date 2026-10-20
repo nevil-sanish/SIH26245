@@ -17,7 +17,7 @@ MEVA_S3 = "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/"
 MEVA_CLIPS = [
     "2018-03-11/12/2018-03-11.12-00-00.12-05-00.school.G420.r13.avi",   # 43 annotated entries
     "2018-03-11/11/2018-03-11.11-15-00.11-20-00.school.G420.r13.avi",   # 42 annotated exits
-    "2018-03-11/12/2018-03-11.11-55-01.12-00-01.school.G421.r13.avi",   # lobby, 15–25 people
+    "2018-03-15/15/2018-03-15.15-15-00.15-20-00.school.G421.r13.avi",   # lobby, busiest annotated G421 slot (~9 actors/frame)
 ]
 MEVA_ANN = "https://gitlab.kitware.com/meva/meva-data-repo.git"
 COMMONS = {

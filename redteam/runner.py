@@ -28,8 +28,9 @@ MEVA = RAW / "meva"
 SOURCES = {
     "G420_busy": (MEVA / "2018-03-11.12-00-00.12-05-00.school.G420.r13.avi", DEMO_DAY.replace(hour=12)),
     "G420_exits": (MEVA / "2018-03-11.11-15-00.11-20-00.school.G420.r13.avi", DEMO_DAY.replace(hour=11, minute=15)),
-    # Lobby clip is the adjacent MEVA slot (11:55); re-stamped onto 12:00 so door + room cover one demo session.
-    "G421_room": (MEVA / "2018-03-11.11-55-01.12-00-01.school.G421.r13.avi", DEMO_DAY.replace(hour=12)),
+    # Lobby clip = busiest annotated G421 slot (2018-03-15 15:15; the 03-11 11:55 slot is an empty lobby), re-stamped
+    # onto 12:00 so door + room cover one demo session.
+    "G421_room": (MEVA / "2018-03-15.15-15-00.15-20-00.school.G421.r13.avi", DEMO_DAY.replace(hour=12)),
     "lab": (RAW / "commons" / "mexico_computer_lab.ogv", DEMO_DAY.replace(hour=10)),
     "lab_india": (RAW / "commons" / "india_computer_lab.ogv", DEMO_DAY.replace(hour=10)),
 }

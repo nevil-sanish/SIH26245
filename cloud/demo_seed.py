@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import zlib
+from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -132,12 +133,18 @@ def build(noise: Noise):
                                                   interaction_s=used, scheduled_practical_s=sched, identity_score=sim,
                                                   label="simulated"))
     # demo-day session for the measured centres: 12:00–12:05 (the MEVA slot), mock check-ins
+    # The claim matches what the room camera measured (peak occupancy in the packets): an honest centre's check-ins.
     t0 = int(DEMO_DAY.replace(hour=12).timestamp())
+    peak = defaultdict(int)
+    if (DEMO / "packets.jsonl").exists():
+        for p in map(json.loads, filter(str.strip, open(DEMO / "packets.jsonl"))):
+            if p.get("cam") != "CAM-DOOR" and p.get("occ") is not None:
+                peak[p["c"]] = max(peak[p["c"]], p["occ"])
     for cid in MEASURED:
         bid = f"{cid}-B1"
         kind = "practical" if cid == "TC0198" else "theory"
         seed["timetable"].append(dict(batch_id=bid, room="R1", start=t0, end=t0 + 300, kind=kind))
-        ck = np.sort(np.random.default_rng(zlib.crc32(cid.encode())).uniform(t0 - 240, t0 + 240, 20))
+        ck = np.sort(np.random.default_rng(zlib.crc32(cid.encode())).uniform(t0 - 240, t0 + 240, peak[cid] or 20))
         seed["checkins"] += [{"batch_id": bid, "ts": int(t), "label": "mock"} for t in ck]
     return seed, obs, assets, asset_obs
 

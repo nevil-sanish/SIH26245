@@ -31,9 +31,9 @@ Download scripts: `data/download/` (each script prints the licence before downlo
 ## How the demo footage is used (honesty note)
 
 - MEVA clips are re-encoded to 1280×720 and **re-stamped** onto the demo day (2026-10-19) with a burned-in DVR-style
-  clock (`redteam/generators.py::burn_clock`). The originals were recorded 2018-03-11.
-- The honest demo centre's door clip (G420, 12:00–12:05) and lobby clip (G421, adjacent slot 11:55–12:00) are
-  both stamped 12:00 so that one demo session has a door and a room view. Ground truth for door events comes
+  clock (`redteam/generators.py::burn_clock`). The originals were recorded 2018-03-11 / 2018-03-15.
+- The honest demo centre's door clip (G420, 2018-03-11 12:00–12:05) and lobby clip (G421, 2018-03-15 15:15–15:20,
+  the busiest annotated lobby slot; the adjacent 03-11 11:55 slot turned out to be an empty lobby) are both stamped 12:00 so that one demo session has a door and a room view. Ground truth for door events comes
   from the G420 annotations only.
 - Red-team manipulations (replay with yesterday's clock, freeze, lens cover, same clip under two centre IDs) are
   applied to these clips; results on them are **measured** (real model output) on **manipulated** footage.

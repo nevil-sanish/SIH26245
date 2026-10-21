@@ -1,32 +1,65 @@
-# HANDOFF — read this first (state as of 2026-10-20 21:50 IST)
+# HANDOFF — read this first (state as of 2026-10-22 01:00 IST)
 
 You are continuing the SAKSHI build for SIH 2026 problem statement **SIH26245** (MSDE): anonymous, tamper-evident
-CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.md`](../PROMPT.md) (a copy of
-`~/Downloads/SIH26245_BUILD_PROMPT.md`). The code map is [`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from
-the prompt is in [`DECISIONS.md`](DECISIONS.md). This file covers **where things stand, how we work, and what is left**.
+CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.md`](../PROMPT.md). The code map is
+[`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from the prompt is in [`DECISIONS.md`](DECISIONS.md). This file
+covers **where things stand, how we work, and what is left**.
+
+## 0. RESUME HERE (session of 2026-10-22 stopped at ~01:00 IST with Kaggle jobs still running)
+
+All compute now runs on **Kaggle** (Colab hit its rate limit). Kaggle CLI on the laptop is logged in as
+**`anonymousguy011`** (`kaggle config view`; browser account guyanonymous013@gmail.com, phone-verified, 30 GPU h/week).
+Kernels run on Kaggle's servers and keep running with the laptop off; output is kept per kernel version.
+
+| Kernel | What | State at handoff |
+|---|---|---|
+| `anonymousguy011/sakshi-finetune-long` (v2) | **the main job.** `models/finetune_heads_kaggle.py` with `THEN_PIPELINE = True`: RF-DETR Nano head fine-tune at 640 px, up to 80 epochs, early stopping (patience 10) → ONNX export to `out/` → clones the repo **at that moment** and runs `scripts/kaggle_pipeline.py` → `scripts/gpu_runs.sh` (full measured run) → `results/` + `gpu_runs.log` | started 00:55 IST; ~4 min/epoch → training done 04:00–06:20, pipeline +~1 h |
+| `anonymousguy011/sakshi-finetune` (v2) | same fine-tune, 30 epochs fixed, no pipeline (fallback model) | started 00:36, done ~02:45 |
+| `anonymousguy011/sakshi-smoke` (v5) | CPU check of the venv install fix (`UV_SYSTEM_PYTHON`), full pytest, `demo_check` | pushed 00:57 — **result not yet read** |
+| `sakshi-setup`, `notebook622e4b2bd7` | old one-offs | done / idle; may be deleted |
+
+**Steps to resume** (from the repo root):
+1. `kaggle kernels status anonymousguy011/sakshi-smoke`, then read its log:
+   `kaggle kernels output anonymousguy011/sakshi-smoke -p /tmp/smoke` and look at `/tmp/smoke/sakshi-smoke.log`
+   (tests passed? `demo_check` ok?). If something fails, fix it and push to GitHub **before the long kernel's training
+   ends**. The chained pipeline clones `main` only then, so a fix pushed in time is picked up.
+2. `kaggle kernels status anonymousguy011/sakshi-finetune-long`. When it shows COMPLETE:
+   `kaggle kernels output anonymousguy011/sakshi-finetune-long -p /tmp/long`
+   - `/tmp/long/out/`: `rfdetr_nano_head.onnx`, `rfdetr_nano_coco.onnx`, `head_metrics.json`, `SHA256SUMS`
+   - `/tmp/long/results/`: result files with their repo paths (`docs/ACCURACY_REPORT.md`, `data/work/*.json`,
+     `data/demo/packets.jsonl`, `data/demo/device_keys.json`, `models/checksums.txt`, `models/head_metrics.json`,
+     `edge/cameras/meva_G420_door.yaml` with the chosen `door_min_frames`, `dashboard/public/india.json`)
+   - `/tmp/long/gpu_runs.log`: full log.
+   Copy them into the repo with `cp -r /tmp/long/results/. .`, review the diff, update `DECISIONS.md` (verified
+   facts: head MAE, door P/R and the sweep, FN/FP), `README.md` status and this file, then commit.
+3. If the chained pipeline failed but `out/` exists: fix, push, and run `scripts/kaggle_pipeline.py` as its own kernel
+   (metadata: GPU + internet on, `kernel_sources: ["anonymousguy011/sakshi-finetune-long"]`).
+4. **Do not push a new version of `sakshi-finetune-long` before fetching its output.** `kernels output` returns the
+   latest version only.
+5. Kaggle allows **2 batch GPU sessions** at once. Pushing a new version does **not** stop the old one. Stop runs in
+   the browser: kaggle.com/work → "View Active Events" → ⋯ → Stop Session.
 
 ## 1. Rules the user set (must follow)
 
 | Rule | Detail |
 |---|---|
-| **Run nothing locally** | No model inference, edge runs, eval, red-team, ffmpeg or tests on the laptop. Write code locally → `git push` → run in **Google Colab** via the Claude-in-Chrome extension. Trivial file edits and `git` are fine. |
-| **Colab account** | `sanishnevil@gmail.com` = Colab `?authuser=5`. Do **not** use authuser 0 (that is nevilsanish@gmail.com). |
+| **Run nothing locally** | No model inference, edge runs, eval, red-team, ffmpeg or tests on the laptop. Write code locally → `git push` → run on **Kaggle** (CLI `kaggle kernels push`; Colab is rate-limited). Trivial file edits and `git` are fine. Open question to the user: may `docker compose up` + a dashboard click-through run locally? |
 | **Commits** | Commit and push to `https://github.com/nevil-sanish/SIH26245` (branch `main`) after each completed step, authored **nevil-sanish <nevilsanish@gmail.com>** (repo-local git config is set). **No Claude / Co-Authored-By / session trailers.** |
-| **Drive** | The user approved clicking "Connect to Google Drive" for these SAKSHI notebooks only. |
-| **Style** | Follow `PROMPT.md` exactly. Lean code, no unnecessary files, everything explained in `docs/` so another AI can continue. The user wants speed and minimal chatter. |
+| **Quality** | The user wants the *results* to be as good as possible, not just a working build. Train long; fix real modelling errors; never tune a threshold to pass a test (DECISIONS records which changes came after seeing a failure). |
+| **Style** | Follow `PROMPT.md` exactly. Lean code, no unnecessary files, everything explained in `docs/` so another AI can continue. The user wants speed, minimal chatter, and token economy. |
 | **Footage** | Public data for now (MEVA CC BY 4.0 + Wikimedia Commons). The user will later supply their own college footage, and the eval must re-run on it unchanged. |
 | **Repo visibility** | The repo is **public**; PROMPT §15 says private until evaluation. The user was told and hasn't decided. Don't change visibility yourself. |
+| **Local reference files** | `files/` (papers, PS PDF, proposal decks, explainer video, a copy of the prompt) is git-ignored. Do not commit it. |
 
 ## 2. Where everything is
 
-- Code: `~/NEVIL/code/sih 2026/sih 2nd/` (its own git repo, nested inside the user's `~/NEVIL` backup repo).
-- Notebooks (open from GitHub with `?authuser=5`):
-  - `models/finetune_heads_colab.ipynb`: RF-DETR Nano head fine-tune on SCUT-HEAD (**done**). The currently running GPU evaluation cell was inserted at the top of this notebook.
-  - `eval/colab_pipeline.ipynb`: older CPU pipeline notebook (superseded by `scripts/colab_gpu_runs.sh`).
-- Google Drive (sanishnevil):
-  - `MyDrive/sakshi_models/`: `rfdetr_nano_head.onnx` (116 MB), `rfdetr_nano_coco.onnx` (115 MB), `head_metrics.json`, `SHA256SUMS`.
-  - `MyDrive/sakshi_work/`: 12 prepared clips (`clips/*.mp4`) + `rfdetr_nano_coco.onnx`. When the run finishes, `bundle.txt` is written here.
-- Local venv `.venv` (py3.11) exists but must not be used to run things (see rule 1).
+- Code: `~/NEVIL/code/sih 2026/sih 2nd/` (its own git repo).
+- Kaggle scripts: `models/finetune_heads_kaggle.py` (fine-tune; `THEN_PIPELINE` chains the run),
+  `scripts/kaggle_pipeline.py` (finds the ONNX in `/kaggle/working/out` or `/kaggle/input`, runs `scripts/gpu_runs.sh`),
+  `scripts/gpu_runs.sh` (platform-neutral measured run in a py3.11 venv; was `colab_gpu_runs.sh`).
+- Kernel metadata for re-pushing lives only in the pushed kernels (`kaggle kernels pull <id> -m`).
+- Colab artefacts (historical): `models/finetune_heads_colab.ipynb`; Drive `MyDrive/sakshi_models/` on sanishnevil
+  (512 px model of 2026-10-20). Not needed any more.
 
 ## 3. What is DONE
 
@@ -40,7 +73,22 @@ the prompt is in [`DECISIONS.md`](DECISIONS.md). This file covers **where things
 - `tests/`: engines, chaos (2 h outage, forged / reordered / duplicate packets), API integration.
 - Docs: `ARCHITECTURE`, `DECISIONS`, `REFERENCES`, `DATASETS`, `PRIVACY_DESIGN` (D3), `LOW_BANDWIDTH` (D5), `CAMERA_PLACEMENT`, `COST`, `REQUIREMENT_AUDIT`, `DEMO_SCRIPT`, `THIRD_PARTY_LICENSES`, `README`.
 
-**Verified in Colab:**
+
+**Session 2026-10-22 (00:00–01:00 IST), committed, measured numbers pending on Kaggle:**
+- Door crossing hysteresis `door_min_frames`, chosen by `eval.robustness --door-sweep` on the **42-exit** MEVA clip.
+  Exits had been measured on only 2 GT, and the exit clip was downloaded but never evaluated.
+- Red-team door noise per direction. Entries had been simulated with the any-direction precision 0.863, which is about
+  7× too many phantom entries, and those masked proxy check-ins (R2b).
+- `checkin_then_leave`: a 10 % floor plus a Poisson test against the measured false-exit rate (was a fixed 20 %).
+  `unmatched_checkin` floor changed to `>=`. Both are flagged in DECISIONS as made after seeing R2b/R3b fail.
+- Head fine-tune at 640 px with a classroom-only threshold choice. 80 epochs with early stopping. Early val mAP50:95
+  of the 640 run: 0.458 at epoch 3, versus 0.454 final for the 512 px Colab model.
+- Lab clip TC0198: the Commons source is **11.1 s**, which is why it gives 23 frames and 1 packet. Documented in the
+  report's Known limits. The India lab clip is 41 s, also under one 60 s packet.
+- `.gitignore`: `data/server.key` (secret), `*.db-shm/wal`, `files/`. Dashboard `package-lock.json` committed.
+- Tests added: per-direction noise model, walk-out vs exit precision. They will run in the Kaggle pipeline's pytest.
+
+**Verified in Colab (2026-10-20):**
 - 25/25 tests pass (before `test_api.py` and the SMS test were added; those haven't run yet).
 - The dashboard builds (12 routes), and TypeScript is clean.
 - Head model trained 30 epochs: val mAP@50 **0.902**, mAP@50:95 0.454. PyTorch head-count MAE on SCUT-HEAD Part A test is **2.17** (mean 34.4 heads per image) at threshold **0.35**. ONNX export: input `[1,3,512,512]`, outputs `dets [1,300,4]` and `labels [1,300,2]`. **Head = logit column 0.**
@@ -64,22 +112,18 @@ Colab VM (T4, `finetune_heads_colab.ipynb`, authuser=5) holds `/content/sakshi` 
 
 ## 5. What is LEFT (in order)
 
-1. `data/demo/packets.jsonl` + `device_keys.json` (measured demo packets) exist only on the Colab VM: the extension blocks reading base64/signatures, and the Drive connector here is a different Google account. Bring them home via Colab's file download (needs the user's OK) or Drive sync, then commit. Without them `demo_seed` still runs (simulated only).
-2. Re-check after the lobby switch: TC0421 clean, queue order (TC0880/TC0777/TC0915/TC0307/TC0333 high). Update DECISIONS if the room counts change.
-3. Exits on the door produce ~6 FP vs 2 GT: tolerable, but tune if exits matter.
-4. Dashboard: build passes (12 routes, EN/HI keys complete: 112/112). Not clicked through in a browser yet.
-5. Docker images: build-check on a demo machine (`docker compose up`).
-6. **Lab scenario (TC0198):** the lab clip yields only 23 frames (1 packet): check `lab` clip length / sample_fps. It uses the head model, `class_ids: [0]`, thr 0.35. Verify the monitor asset zone `[[300,170],[380,240]]` against a frame (`scripts/preview_calibration.py`).
-7. **Own college footage** (when the user provides it): add camera YAMLs, label a 5-min clip, re-run `eval/robustness` and `metrics`, and report it separately.
-8. **Optional / not done:**
-   - SMS gateway integration (only the builder exists);
-   - SCB-Dataset extra fine-tune;
-   - EduNet (not obtainable);
-   - a real QP equipment list (the inventory is mock);
-   - a cited ₹ rate (₹50 assumption in `cloud/engines/risk.py`);
-   - Alembic migrations;
-   - face-blur miss rate on own footage;
-   - Raspberry Pi tier.
+1. Read smoke v5 and fix anything broken before the long kernel's training ends (§0 step 1).
+2. Fetch the long kernel's output, copy `results/` in, update DECISIONS / README / this file, and commit (§0 step 2).
+   This also closes old items: measured `data/demo/packets.jsonl` + `device_keys.json` come home, the TC0421 clean
+   check and queue order are re-run by `demo_check`, and the exits are re-measured.
+3. Ask the user whether `docker compose up` and a dashboard click-through may run locally; otherwise leave them for
+   the demo machine.
+4. **Own college footage** (when the user provides it): add camera YAMLs, label a 5-min clip, re-run `eval/robustness`
+   and `metrics`, and report it separately.
+5. **Optional / not done:** a MOT17 tracker benchmark (ByteTrack idea from the user's link; research-use data, keep it
+   out of the repo); SMS gateway integration (only the builder exists); SCB-Dataset or CrowdHuman extra fine-tune;
+   a real QP equipment list (the inventory is mock); a cited ₹ rate (₹50 assumption in `cloud/engines/risk.py`);
+   Alembic migrations; face-blur miss rate on own footage; Raspberry Pi tier.
 
 ## 6. Gotchas learned the hard way
 
@@ -91,3 +135,8 @@ Colab VM (T4, `finetune_heads_colab.ipynb`, authuser=5) holds `/content/sakshi` 
 - **Demo timeline:** MEVA 2018-03-11 footage is re-stamped onto 2026-10-19. The lobby clip (11:55 slot) is stamped 12:00 to pair with the door clip.
 - **Colab's "Notebook not authored by Google" dialog:** click Run anyway (it's our own repo).
 - **The browser `find` tool can hit rate limits.** Prefer `get_page_text` / `javascript_tool`.
+- **Kaggle:** `kernels logs` / `kernels output` only return a log after the run ends. The live log is in the browser
+  (kernel page → Logs). Avoid `get_page_text` on log pages, because the output is huge; use a short JS filter.
+- **Kaggle image sets `UV_SYSTEM_PYTHON`:** `uv pip install` then writes into the VM's Python 3.13. `gpu_runs.sh` unsets
+  it and installs with `--python /tmp/venv/bin/python`.
+- Kaggle's system Python is 3.13; our pins target 3.11, hence the uv venv.

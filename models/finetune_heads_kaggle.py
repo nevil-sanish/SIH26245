@@ -133,3 +133,10 @@ p = coco.export(output_dir=str(W / 'export_coco'), format='onnx', fp16=False)
 shutil.copy(p, OUT / 'rfdetr_nano_coco.onnx')
 sh(f"cd {OUT} && sha256sum rfdetr_nano_*.onnx head_metrics.json | tee SHA256SUMS && ls -la")
 print("FINETUNE_DONE")
+
+# 6. Optional: the measured run in this same session (one kernel does everything; nobody has to be online when
+#    training ends). The repo is cloned now, so fixes pushed while training ran are used. Model output is already safe.
+THEN_PIPELINE = False
+if THEN_PIPELINE:
+    sh("rm -rf /tmp/sakshi && git clone -q --depth 1 https://github.com/nevil-sanish/SIH26245.git /tmp/sakshi")
+    sh("cd /tmp/sakshi && python scripts/kaggle_pipeline.py", check=False)

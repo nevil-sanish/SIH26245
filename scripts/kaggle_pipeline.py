@@ -1,7 +1,8 @@
-# SAKSHI measured run as a Kaggle kernel (GPU + internet on; attach the sakshi-finetune kernel as input):
+# SAKSHI measured run as a Kaggle kernel (GPU + internet on; attach the sakshi-finetune kernel as input, or chained
+# from models/finetune_heads_kaggle.py with THEN_PIPELINE = True, which finds the model in /kaggle/working/out):
 # fine-tune output -> scripts/gpu_runs.sh -> /kaggle/working/results (fetch with `kaggle kernels output`).
 import glob, os, subprocess, sys
-heads = glob.glob("/kaggle/input/**/rfdetr_nano_head.onnx", recursive=True)
+heads = glob.glob("/kaggle/working/out/rfdetr_nano_head.onnx") or glob.glob("/kaggle/input/**/rfdetr_nano_head.onnx", recursive=True)
 print("head ONNX found:", heads, flush=True)
 if not heads:
     sys.exit("fine-tune output not attached")

@@ -27,7 +27,7 @@ with the reason. Numbers marked *pending* are filled from GPU-VM runs (`scripts/
 | MEVA door-event GT | `person_enters/exits_scene_through_structure` activities with frame spans; G420 2018-03-11 12:00 has 43 entries, 11:15 has 42 exits | kitware annotations, 2026-10-20 |
 | SCUT-HEAD terms `[Guessing]` | no licence file in the release repo → treated as research-only; weights trained on it are not redistributed beyond the prototype | github HCIILAB, 2026-10-20 |
 | SCUT-HEAD size | 4,405 images / 111,251 heads; converted: train 3,065 · valid 340 · Part A test 500 · Part B test 500 | Colab run, 2026-10-20 |
-| RF-DETR Nano licence | Apache-2.0 (code + N–L weights); default resolution 384, we fine-tune at 512 | rfdetr 1.11.2 wheel, 2026-10-20 |
+| RF-DETR Nano licence | Apache-2.0 (code + N–L weights); default resolution 384; fine-tuned at 512 (Colab, 2026-10-20), then 640 (Kaggle, 2026-10-22) | rfdetr 1.11.2 wheel, 2026-10-20 |
 | Whisper packet size `[Guessing]` 150–250 B | 245 B for a typical minute (self-check `python -m edge.packet`) | 2026-10-20 |
 | PaddleOCR on DVR overlay | `en_PP-OCRv5_mobile_rec` read the burned clock exactly (12:01:05 at t = 65 s), 0.12 s per read | 2026-10-20 |
 | Honest-control FP of `unmatched_checkin` | 20–35 % with a fixed 10 % threshold at 90 % door recall → replaced by a binomial test against the *measured* recall: 1/120 | redteam sims, 2026-10-20 |
@@ -48,3 +48,17 @@ doorway (feet ≈(660,455) → (570,535)) — and supervision counted entries as
 Refit: principal axis through the midpoints of all 44 GT paths, extended 40 px each side →
 `[[559,479],[873,559]]`, which 42 of 44 paths cross; `entry_direction: in_is_right_to_left` (start→end orientation
 kept). Re-measured in the next Colab run (ACCURACY_REPORT). The same check needs doing for each new door camera.
+
+## Accuracy changes, 2026-10-22 (Kaggle run)
+
+Made after reading the 2026-10-20 report against the PROMPT §14 targets. Each is a fix of a modelling error or a
+rule made consistent with its sibling, not a threshold moved to pass a test. The two marked † were changed after
+seeing R2b / R3b fail, and are listed so a reader can discount them. Numbers: ACCURACY_REPORT of the Kaggle run.
+
+| Change | Why |
+|---|---|
+| Head model fine-tuned at **640 px** (was 512); score threshold picked on the **Part A (classroom) images of valid** (was all of valid, half web images) | head-count MAE 2.2 vs target 1.5; back-row heads are a few pixels at 512; deployment domain is classroom CCTV |
+| Door **crossing hysteresis** `door_min_frames` (supervision `minimum_crossing_threshold`), chosen by `eval.robustness --door-sweep` on the **42-exit** G420 11:15 clip; the busy clip's entries stay held out | exit precision 0.25 came from people stepping over the line and turning back; and it was measured on only 2 GT exits — the annotated exit clip was downloaded but never evaluated |
+| Red-team door noise **per direction**: entries from measured entry P/R, exits from the exit clip at the deployed `door_min_frames`; false exits injected | the simulator used any-direction precision (0.863, dragged down by false exits) for entries: ~14 % phantom entries instead of ~2 %, which "explained" proxy check-ins (R2b) |
+| † `checkin_then_leave`: 10 % floor **+ Poisson test** against the measured false-exit rate (was a fixed 20 % cut) | same structure as `unmatched_checkin`; a walk-out is evidence only if door errors cannot explain it — so the flag depends on measured exit quality, and stays silent on noisy doors |
+| † `unmatched_checkin` floor is `>=` 10 % (was `>`) | documented as a minimum share; exactly 3/30 could never flag |

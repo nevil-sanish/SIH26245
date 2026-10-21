@@ -15,11 +15,11 @@ Kernels run on Kaggle's servers and keep running with the laptop off; output is 
 |---|---|---|
 | `anonymousguy011/sakshi-finetune-long` (v2) | **the main job.** `models/finetune_heads_kaggle.py` with `THEN_PIPELINE = True`: RF-DETR Nano head fine-tune at 640 px, up to 80 epochs, early stopping (patience 10) → ONNX export to `out/` → clones the repo **at that moment** and runs `scripts/kaggle_pipeline.py` → `scripts/gpu_runs.sh` (full measured run) → `results/` + `gpu_runs.log` | started 00:55 IST; ~4 min/epoch → training done 04:00–06:20, pipeline +~1 h |
 | `anonymousguy011/sakshi-finetune` (v2) | same fine-tune, 30 epochs fixed, no pipeline (fallback model) | started 00:36, done ~02:45 |
-| `anonymousguy011/sakshi-smoke` (v5) | CPU check of the venv install fix (`UV_SYSTEM_PYTHON`), full pytest, `demo_check` | pushed 00:57 — **result not yet read** |
+| `anonymousguy011/sakshi-smoke` (v5) | CPU check of the venv install fix (`UV_SYSTEM_PYTHON`), full pytest, `demo_check` | **passed 01:01**: py3.11.14 venv (ORT 1.31.0, torch 2.14.1+cu130), **30/30 tests**, `demo_check` ok (video centres show only `data_gap` because the smoke run has no measured packets; the long run brings them) |
 | `sakshi-setup`, `notebook622e4b2bd7` | old one-offs | done / idle; may be deleted |
 
 **Steps to resume** (from the repo root):
-1. `kaggle kernels status anonymousguy011/sakshi-smoke`, then read its log:
+1. (Done 01:01: smoke v5 passed, so the pipeline fix is verified.) For any later smoke run: `kaggle kernels status anonymousguy011/sakshi-smoke`, then read its log:
    `kaggle kernels output anonymousguy011/sakshi-smoke -p /tmp/smoke` and look at `/tmp/smoke/sakshi-smoke.log`
    (tests passed? `demo_check` ok?). If something fails, fix it and push to GitHub **before the long kernel's training
    ends**. The chained pipeline clones `main` only then, so a fix pushed in time is picked up.
@@ -112,15 +112,14 @@ Colab VM (T4, `finetune_heads_colab.ipynb`, authuser=5) holds `/content/sakshi` 
 
 ## 5. What is LEFT (in order)
 
-1. Read smoke v5 and fix anything broken before the long kernel's training ends (§0 step 1).
-2. Fetch the long kernel's output, copy `results/` in, update DECISIONS / README / this file, and commit (§0 step 2).
+1. Fetch the long kernel's output, copy `results/` in, update DECISIONS / README / this file, and commit (§0 step 2).
    This also closes old items: measured `data/demo/packets.jsonl` + `device_keys.json` come home, the TC0421 clean
    check and queue order are re-run by `demo_check`, and the exits are re-measured.
-3. Ask the user whether `docker compose up` and a dashboard click-through may run locally; otherwise leave them for
+2. Ask the user whether `docker compose up` and a dashboard click-through may run locally; otherwise leave them for
    the demo machine.
-4. **Own college footage** (when the user provides it): add camera YAMLs, label a 5-min clip, re-run `eval/robustness`
+3. **Own college footage** (when the user provides it): add camera YAMLs, label a 5-min clip, re-run `eval/robustness`
    and `metrics`, and report it separately.
-5. **Optional / not done:** a MOT17 tracker benchmark (ByteTrack idea from the user's link; research-use data, keep it
+4. **Optional / not done:** a MOT17 tracker benchmark (ByteTrack idea from the user's link; research-use data, keep it
    out of the repo); SMS gateway integration (only the builder exists); SCB-Dataset or CrowdHuman extra fine-tune;
    a real QP equipment list (the inventory is mock); a cited ₹ rate (₹50 assumption in `cloud/engines/risk.py`);
    Alembic migrations; face-blur miss rate on own footage; Raspberry Pi tier.

@@ -10,9 +10,11 @@ RESULTS=${RESULTS:-/tmp/sakshi_results}
 git log --oneline -1
 
 pip install -q uv==0.9.5
-uv venv -q -p 3.11 /tmp/venv && source /tmp/venv/bin/activate
+unset UV_SYSTEM_PYTHON                      # Kaggle's image sets it: uv would install into the VM's Python, not the venv
+uv venv -q -p 3.11 /tmp/venv
 grep -v '^onnxruntime==' edge/requirements.txt > edge/req_gpu.txt     # same pins, GPU build of ONNX Runtime
-uv pip install -q -r edge/req_gpu.txt onnxruntime-gpu==1.31.0 gdown==5.2.0
+uv pip install -q --python /tmp/venv/bin/python -r edge/req_gpu.txt onnxruntime-gpu==1.31.0 gdown==5.2.0
+source /tmp/venv/bin/activate
 python -c "import onnxruntime as o, sys; print('python', sys.version.split()[0], 'ORT providers', o.get_available_providers())"
 
 python data/download.py                                   # MEVA clips + annotations (ground truth), Commons lab clips

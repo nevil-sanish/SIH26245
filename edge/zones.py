@@ -22,6 +22,7 @@ class CameraConfig:
     detect: dict
     door_line: list | None = None
     entry_direction: str = "in_is_left_to_right"
+    door_min_frames: int = 1             # frames a track must stay on the new side before a crossing counts
     room_polygon: list | None = None
     trainer_zone: list | None = None
     assets: list = field(default_factory=list)
@@ -43,9 +44,11 @@ class Zones:
         self.line = None
         if cfg.door_line:
             (x1, y1), (x2, y2) = cfg.door_line
-            # Bottom-centre anchor = feet: the point that actually crosses a doorway.
+            # Bottom-centre anchor = feet: the point that actually crosses a doorway. door_min_frames > 1 is
+            # hysteresis: someone who steps over the line and turns back is not counted as in + out.
             self.line = sv.LineZone(start=sv.Point(x1, y1), end=sv.Point(x2, y2),
-                                    triggering_anchors=[sv.Position.BOTTOM_CENTER])
+                                    triggering_anchors=[sv.Position.BOTTOM_CENTER],
+                                    minimum_crossing_threshold=cfg.door_min_frames)
         poly = lambda p: sv.PolygonZone(polygon=np.asarray(p, np.int32), triggering_anchors=[sv.Position.CENTER])
         self.room = poly(cfg.room_polygon) if cfg.room_polygon else None
         self.trainer = poly(cfg.trainer_zone) if cfg.trainer_zone else None

@@ -78,6 +78,15 @@ def render(r: dict) -> str:
         for k in ("in", "out"):
             x = d[k]
             L.append(f"| {k} | {x['gt']} | {x['tp']} | {x['fp']} | {x['fn']} | {_f(x['precision'])} | {_f(x['recall'])} |")
+    if r.get("door_sweep"):
+        L += ["", "## Door crossing hysteresis sweep (measured)", "",
+              "`door_min_frames` = frames a track must stay on the new side before a crossing counts (5 fps door sampling). "
+              "Both annotated MEVA G420 clips: busy arrival slot (entries) and the 11:15 slot (42 exits).", "",
+              "| door_min_frames | Clip | In GT | In P | In R | Out GT | Out P | Out R |", "|---|---|---|---|---|---|---|---|"]
+        for v in r["door_sweep"]:
+            i, o = v["in"], v["out"]
+            L.append(f"| {v['door_min_frames']} | {v['clip']} | {i['gt']} | {_f(i['precision'])} | {_f(i['recall'])} | "
+                     f"{o['gt']} | {_f(o['precision'])} | {_f(o['recall'])} |")
     if r.get("robustness"):
         L += ["", "## Robustness curves (measured)", "",
               "| Variant | Edge fps | Door P (any) | Door R (any) | Count MAE |", "|---|---|---|---|---|"]

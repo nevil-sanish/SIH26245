@@ -1,15 +1,28 @@
-"""Print the Colab run's result files as one base64 tar.gz between markers, so they can be copied back into the repo
-without Drive or downloads:  python scripts/bundle_results.py   →   (locally) base64 -d | tar xz
+"""Collect a GPU run's result files.
+    python scripts/bundle_results.py --copy DIR   copy them to DIR with their repo paths (Kaggle: kernel output)
+    python scripts/bundle_results.py              print one base64 tar.gz between markers (Colab, no downloads):
+                                                  (locally) base64 -d | tar xz
 """
 import base64
+import shutil
+import sys
 import io
 import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ["docs/ACCURACY_REPORT.md", "models/checksums.txt", "models/head_metrics.json", "data/work/accuracy.json",
-         "data/work/robustness.json", "data/work/head_onnx_check.json", "data/work/cpu_benchmark.json", "data/work/edge_runs.json", "data/demo/packets.jsonl", "data/demo/device_keys.json",
-         "dashboard/package-lock.json", "dashboard/public/india.json"]
+         "data/work/robustness.json", "data/work/door_sweep.json", "data/work/head_onnx_check.json", "data/work/cpu_benchmark.json", "data/work/edge_runs.json", "data/demo/packets.jsonl", "data/demo/device_keys.json",
+         "dashboard/package-lock.json", "edge/cameras/meva_G420_door.yaml", "dashboard/public/india.json"]
+
+if "--copy" in sys.argv:
+    dst = Path(sys.argv[sys.argv.index("--copy") + 1])
+    for f in FILES:
+        if (ROOT / f).exists():
+            (dst / f).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / f, dst / f)
+        print("copied" if (ROOT / f).exists() else "missing", f)
+    sys.exit()
 
 buf = io.BytesIO()
 with tarfile.open(fileobj=buf, mode="w:gz", compresslevel=9) as t:

@@ -37,7 +37,7 @@ def render(r: dict) -> str:
     if hm and isinstance(hm.get("test_A_classroom"), dict):
         a = hm["test_A_classroom"]
         L.append(f"| Head-count MAE, SCUT-HEAD Part A test (classroom CCTV, {a['images']} images, "
-                 f"mean {a['mean_heads']:.1f} heads) — measured in Colab | {_f(a['count_mae'])} "
+                 f"mean {a['mean_heads']:.1f} heads) — measured in the fine-tune run ({hm.get('resolution', '?')} px, {hm.get('gpu') or 'GPU'}) | {_f(a['count_mae'])} "
                  f"({a['count_mae_pct']:.1f} %) | ≤ 1.5 (reference 1.23) |")
     ho = r.get("head_onnx")
     if ho:
@@ -120,6 +120,9 @@ def render(r: dict) -> str:
           "evaluated with the same scripts and reported separately.",
           "- Per-frame count ground truth on MEVA covers annotated actors; on the door camera that is effectively "
           "everyone in view, on the busy lobby it is not, so lobby MAE is not reported.",
+          "- The computer-lab clip (Wikimedia Commons, 11 s) yields one Whisper packet: the TC0198 run only checks "
+          "that the head model, asset zones and screen-on path run end to end. Asset rules (S1 OAI, S2 identity) are "
+          "evaluated by the R7/R8 simulations until a longer lab recording (own footage) exists.",
           "- Simulated scenarios inherit the measured detector noise but not every real-world failure mode "
           "(e.g. occlusion bursts at the door)."]
     return "\n".join(L) + "\n"

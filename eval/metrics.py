@@ -5,7 +5,7 @@ measured   door P/R and per-frame count MAE of the real edge pipeline on the lab
 simulated  event/series scenarios R1–R3, R7–R9, N1–N3 (+ controls for R7–R9) through the cloud engines,
            with detector noise set from the *measured* door recall/precision and count MAE
 bandwidth  bytes per packet / per hour per camera per tier, from the real outbox
-Head-count MAE on SCUT-HEAD (classroom CCTV stills) is measured in Colab: models/head_metrics.json.
+Head-count MAE on SCUT-HEAD (classroom CCTV stills) is measured by the fine-tune run (models/finetune_heads_kaggle.py): models/head_metrics.json.
 """
 from __future__ import annotations
 

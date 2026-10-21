@@ -134,7 +134,7 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
         # severity = unmatched share beyond what missed detections explain
         excess = max(0.0, uf - (1 - p.door_recall)) / max(p.door_recall, 1e-9)
         signals["unmatched_checkin"] = {
-            "value": k, "flag": uf > p.unmatched_frac and k >= 2 and p_val < p.alpha,
+            "value": k, "flag": uf >= p.unmatched_frac and k >= 2 and p_val < p.alpha,
             "severity": excess, "p_value": round(p_val, 5),
             "detail": f"{k}/{n} check-ins have no door entry within ±{p.window_s:.0f} s "
                       f"(expected ≤{(1 - p.door_recall) * n:.0f} from missed detections; p={p_val:.3g})"}

@@ -1,7 +1,7 @@
 # Decisions and verified facts
 
 Every `[Likely]` / `[Guessing]` item from `PROMPT.md`, plus every place the build deviates from the prompt's letter,
-with the reason. Numbers marked *pending* are filled from Colab runs (`eval/colab_pipeline.ipynb`).
+with the reason. Numbers marked *pending* are filled from GPU-VM runs (`scripts/gpu_runs.sh`).
 
 ## Deviations from PROMPT.md (architecture unchanged)
 
@@ -15,7 +15,7 @@ with the reason. Numbers marked *pending* are filled from Colab runs (`eval/cola
 | D-6 | i18n library | plain JSON dictionaries `dashboard/i18n/{en,hi}.json` + a 30-line provider | no extra dependency |
 | D-7 | Whisper packet fields | adds `ei`/`eo` (entry/exit second offsets), `oc` (six 10-s occupancy samples), `tier`, `q` (sharpness), `na` (unavailable modules), `aid` (asset identity scores) | Hungarian matching needs per-event times, not per-minute counts; still ~250 B |
 | D-8 | Footage from own college | MEVA (CC BY 4.0) + Wikimedia Commons now; own footage later | user decision 2026-10-20; eval scripts re-run unchanged on new footage |
-| D-9 | All runs | nothing executes on the developer laptop: training, inference, eval, red-team run in Google Colab | user rule 2026-10-20; edge fps is therefore measured on Colab CPU (reported with CPU model) |
+| D-9 | All runs | nothing executes on the developer laptop: training, inference, eval, red-team run on a cloud VM — Google Colab until 2026-10-21, Kaggle T4 kernels since 2026-10-22 (Colab rate limit) | user rule 2026-10-20; edge fps is therefore measured on the VM CPU (reported with CPU model) |
 | D-11 | (implicit) host local time | every wall-clock value is **IST** (`edge/__init__.py::IST`): DVR overlay, OCR parse, date bucketing, timetables, dashboard display | Colab runs in UTC, centres and demo machines in IST; naive local times shifted measured packets 5.5 h away from the timetable |
 | D-10 | Edge clips 1080p | demo/red-team clips re-encoded to 1280×720 | CPU budget; 1080p/360p still measured in the robustness curves |
 

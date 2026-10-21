@@ -2,7 +2,7 @@
 
     python models/download.py [--onnx-from DIR]
 
-ONNX detectors come from the Colab fine-tune (models/finetune_heads_colab.ipynb) — pass the folder it
+ONNX detectors come from the fine-tune (models/finetune_heads_kaggle.py; Colab: finetune_heads_colab.ipynb) — pass the folder it
 wrote (e.g. /content/drive/MyDrive/sakshi_models). HF models (DINOv2-small, OWLv2) are snapshot-downloaded
 to models/hf/ so the edge runs fully offline afterwards. A file whose SHA-256 differs from checksums.txt
 is refused (fail loudly).

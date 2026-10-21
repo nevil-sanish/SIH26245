@@ -10,7 +10,7 @@ YOLOv8/11/26 and BoxMOT (AGPL-3.0), YOLO-World (GPL-3.0), react-leaflet (Hippocr
 | Model | Use | Licence | Source |
 |---|---|---|---|
 | RF-DETR Nano (COCO) | person detection (door cameras) | Apache-2.0 | roboflow/rf-detr |
-| RF-DETR Nano fine-tuned on SCUT-HEAD | head detection (seated rooms) | weights: Apache-2.0 base; **training data research-only** (see DATASETS.md) | models/finetune_heads_colab.ipynb |
+| RF-DETR Nano fine-tuned on SCUT-HEAD | head detection (seated rooms) | weights: Apache-2.0 base; **training data research-only** (see DATASETS.md) | models/finetune_heads_kaggle.py |
 | DINOv2-small | equipment identity embeddings | Apache-2.0 | facebook/dinov2-small |
 | OWLv2 base patch16 ensemble | zero-shot equipment discovery | Apache-2.0 | google/owlv2-base-patch16-ensemble |
 | PP-OCRv5 mobile rec (en) | DVR timestamp OCR | Apache-2.0 | PaddlePaddle/PaddleOCR |

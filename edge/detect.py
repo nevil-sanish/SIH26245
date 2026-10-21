@@ -1,6 +1,6 @@
 """RF-DETR (Apache-2.0) ONNX wrapper on ONNX Runtime CPU → `sv.Detections`.
 
-Two models (both produced by models/finetune_heads_colab.ipynb, fetched by models/download.py):
+Two models (both produced by models/finetune_heads_kaggle.py (or the Colab notebook), fetched by models/download.py):
   rfdetr_nano_coco.onnx  person (COCO class 1)        door cameras, workshops
   rfdetr_nano_head.onnx  head (fine-tuned SCUT-HEAD)  seated classrooms / labs
 Optional SAHI-style tiling (supervision.InferenceSlicer) for small back-row heads on room cameras.

@@ -41,8 +41,8 @@ where each part of it lives. Deviations from the prompt's letter are in [`DECISI
 | `cloud/api.py` | REST API (PROMPT §10), JWT roles, MQTT bridge, hourly retention purge | `uvicorn cloud.api:app` |
 | `cloud/demo_seed.py` | the demo story (PROMPT §22) through the real engines | `python -m cloud.demo_seed --fresh` |
 | `redteam/` | `scenarios.yaml` (R1–R9, subtle R1b–R3b, N1–N3), `generators.py`, `runner.py` | `python -m redteam.runner prepare|video|sims` |
-| `eval/` | `metrics.py` (D4), `robustness.py`, `report.py` → `docs/ACCURACY_REPORT.md`, `colab_pipeline.ipynb` | run in Colab |
-| `models/` | `finetune_heads_colab.ipynb` (RF-DETR head fine-tune, Colab T4), `download.py`, `checksums.txt` | no weights in git |
+| `eval/` | `metrics.py` (D4), `robustness.py`, `report.py` → `docs/ACCURACY_REPORT.md`; `robustness.py --door-sweep` | run on the GPU VM (`scripts/gpu_runs.sh`) |
+| `models/` | `finetune_heads_kaggle.py` (RF-DETR head fine-tune, Kaggle T4; Colab notebook kept), `download.py`, `checksums.txt` | no weights in git |
 | `data/` | `download.py` (MEVA, Commons), `sanctioned_inventory/` (mock QP lists), `demo/` (users, measured packets) | `raw/`, `work/`, `edge_state/` are git-ignored |
 | `dashboard/` | Next.js 16 static export, Tailwind 4, recharts; `i18n/{en,hi}.json` | `npm run build` |
 | `deploy/`, `docker-compose.yml` | Timescale, Mosquitto, cloud, dashboard (nginx) | `docker compose up` |
@@ -97,12 +97,15 @@ Integrity Score (0–100) = 100 − Σ weight × severity over the H1 signals co
 
 ## 5. Running
 
-**Rule for this project: nothing executes on the developer laptop** (DECISIONS D-9). Everything runs in Colab:
-1. `models/finetune_heads_colab.ipynb` (T4 GPU): SCUT-HEAD → RF-DETR Nano head model, metrics, ONNX export of
-   head + COCO person models → `MyDrive/sakshi_models/`.
-2. `eval/colab_pipeline.ipynb` (CPU): clone → tests → `data/download.py` → `redteam.runner prepare` →
-   models → `redteam.runner video` (edge on every video scenario; exports `data/demo/packets.jsonl`) →
-   `eval.robustness` → `eval.metrics` → `eval.report`. Results are copied back into the repo.
+**Rule for this project: nothing executes on the developer laptop** (DECISIONS D-9). Everything runs on a GPU VM
+(Kaggle T4 since 2026-10-22; Colab before):
+1. `models/finetune_heads_kaggle.py` (kernel `sakshi-finetune`): SCUT-HEAD → RF-DETR Nano head model at 640 px,
+   metrics, ONNX export of head + COCO person models → kernel output `out/`.
+2. `scripts/kaggle_pipeline.py` (kernel `sakshi-pipeline`, fine-tune attached) runs `scripts/gpu_runs.sh`: py3.11
+   venv with pinned deps → `data/download.py` → models → tests → `redteam.runner prepare` → head ONNX check → CPU
+   benchmark → `eval.robustness --door-sweep` (sets `door_min_frames`) → `redteam.runner video` (exports
+   `data/demo/packets.jsonl`) → `eval.robustness` → `eval.metrics` → `eval.report` → `scripts.demo_check`.
+   `kaggle kernels output anonymousguy011/sakshi-pipeline` returns the result files with their repo paths.
 
 Demo machine (when allowed): `docker compose up` (seeds the demo on first start) → http://localhost:3000,
 accounts in `data/demo/users.yaml`. Optional live edge: `make edge-demo`.

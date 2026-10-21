@@ -22,9 +22,11 @@ around inspections are found by change-point analysis (**H3**). Nobody is identi
 
 ## Running
 
-All compute runs in Google Colab (project rule): open
-[`models/finetune_heads_colab.ipynb`](models/finetune_heads_colab.ipynb) (T4) then
-[`eval/colab_pipeline.ipynb`](eval/colab_pipeline.ipynb) (CPU). On a demo machine: `docker compose up` →
+All compute runs on a cloud GPU VM, not the developer laptop (project rule). Kaggle (T4, via the `kaggle` CLI):
+push [`models/finetune_heads_kaggle.py`](models/finetune_heads_kaggle.py) as kernel `sakshi-finetune`, then
+[`scripts/kaggle_pipeline.py`](scripts/kaggle_pipeline.py) with that kernel attached as input; it runs
+[`scripts/gpu_runs.sh`](scripts/gpu_runs.sh) and `kaggle kernels output` brings the result files home. (Colab
+equivalents: `models/finetune_heads_colab.ipynb`, then `scripts/gpu_runs.sh`.) On a demo machine: `docker compose up` →
 dashboard http://localhost:3000 (accounts in `data/demo/users.yaml`), API http://localhost:8000/docs.
 
 ## Status

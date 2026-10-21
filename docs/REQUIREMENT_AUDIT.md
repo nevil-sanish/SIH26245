@@ -11,7 +11,7 @@
 | Operate under rural bandwidth limits | Whisper/Normal/Audit tiers, outbox | LOW_BANDWIDTH.md; `test_two_hour_outage_no_data_loss` |
 | Operate under camera-quality limits | evidence level, abstain, tamper checks, robustness curves | ACCURACY_REPORT robustness; `test_data_gap_abstains` |
 | Preserve privacy via aggregate presence, not identification | no face recognition anywhere; face blur on edge; session-scoped IDs | PRIVACY_DESIGN.md; licence/model inventory |
-| **D1** working analytics pipeline on sample/simulated footage | `edge/run.py` on MEVA + Commons + red-team clips | `eval/colab_pipeline.ipynb` run; `data/demo/packets.jsonl` |
+| **D1** working analytics pipeline on sample/simulated footage | `edge/run.py` on MEVA + Commons + red-team clips | `scripts/gpu_runs.sh` run (ACCURACY_REPORT edge runs); `data/demo/packets.jsonl` |
 | **D2** discrepancy + compliance dashboard for monitoring units | `dashboard/` (all PROMPT §12 pages, EN/HI) + `cloud/api.py` | DEMO_SCRIPT |
 | **D3** privacy-preserving design note | `docs/PRIVACY_DESIGN.md` | — |
 | **D4** FP/FN accuracy assessment | `eval/metrics.py`, `eval/robustness.py`, `eval/report.py` → `docs/ACCURACY_REPORT.md` | generated from runs, includes failures |

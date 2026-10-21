@@ -181,3 +181,14 @@ def test_noise_model_is_per_direction():
     sweep = [{"clip": "G420_exits", "door_min_frames": k, "out": pr(0.8, 0.9, 42), "in": pr(None, None, 0)} for k in range(1, 9)]
     n = measured_noise(door, None, sweep)
     assert (n.exit_precision, n.exit_recall) == (0.8, 0.9)
+
+
+def test_small_walkout_depends_on_measured_exit_precision():
+    # 5 of 30 leave mid-session (R3b). Flag only if the door camera's exits are trustworthy.
+    s = honest()
+    t = T0 + 2 * H
+    s.exits = list(np.linspace(t, t + 300, 5))
+    assert "checkin_then_leave" in reconcile_session(s, Params(exit_precision=0.95))["flags"]
+    assert "checkin_then_leave" not in reconcile_session(s, Params(exit_precision=0.25))["flags"]
+    s.exits = s.exits[:2]                                            # 2 of 30: below the 10 % floor
+    assert "checkin_then_leave" not in reconcile_session(s, Params(exit_precision=0.95))["flags"]

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-from scipy.stats import binom
+from scipy.stats import binom, poisson
 
 # Defaults; every one is overridable through `Params` (cloud config / API query).
 @dataclass
@@ -22,7 +22,8 @@ class Params:
     burst_k: int = 10              # ≥ k check-ins ...
     burst_s: float = 60            # ... within s seconds = bulk marking
     leave_grace_s: float = 900     # ignore exits in the first/last 15 min of a session
-    leave_frac: float = 0.2        # net departures ≥ 20 % of check-ins → checkin_then_leave
+    leave_frac: float = 0.1        # net departures ≥ 10 % of check-ins → checkin_then_leave, and they must also be
+    exit_precision: float = 0.9    # improbable as false exits (Poisson test with the MEASURED exit precision, < alpha)
     inflation_frac: float = 0.8    # peak occupancy < 80 % of claimed → inflation
     ghost_occ: float = 0.5         # occupancy ≤ this around a check-in = empty room
     ghost_frac: float = 0.2
@@ -148,9 +149,14 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
         en = en[(en >= lo) & (en < hi) & ~_in_slots(en, s.breaks)] if en.size else en
         departures = max(0, len(ex) - len(en))
         lf = departures / n if n else 0.0
-        signals["checkin_then_leave"] = {"value": departures, "flag": lf >= p.leave_frac,
-                                         "severity": min(1.0, lf),
-                                         "detail": f"{departures} net departures mid-session (not breaks)"}
+        # honest explanation: false exits (measured precision) + re-entries the door camera missed (measured recall)
+        lam = max(0.5, len(ex) * (1 - p.exit_precision) + len(en) * (1 - p.door_recall))
+        p_leave = float(poisson.sf(departures - 1, lam)) if departures else 1.0
+        signals["checkin_then_leave"] = {"value": departures,
+                                         "flag": lf >= p.leave_frac and departures >= 2 and p_leave < p.alpha,
+                                         "severity": min(1.0, lf), "p_value": round(p_leave, 5),
+                                         "detail": f"{departures} net departures mid-session (not breaks); "
+                                                   f"≈{lam:.1f} expected from door errors, p={p_leave:.3g}"}
 
     # Occupancy-based signals (room camera; available at FULL and REDUCED).
     teach_mask = in_session & ~_in_slots(occ_t, s.breaks)

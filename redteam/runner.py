@@ -131,7 +131,7 @@ def sims(seeds: int = 20, noise: Noise = Noise()) -> list[dict]:
     from cloud.engines import assets as A
     from cloud.engines import shadow
     from cloud.engines.reconcile import Params, reconcile_session
-    params = Params(door_recall=noise.door_recall)
+    params = Params(door_recall=noise.door_recall, exit_precision=noise.exit_precision)
     rows = []
     for sid, sc in SCENARIOS["scenarios"].items():
         for seed in range(seeds):

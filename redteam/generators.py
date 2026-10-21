@@ -27,9 +27,11 @@ SCENARIOS = yaml.safe_load(open(ROOT / "redteam" / "scenarios.yaml"))
 @dataclass
 class Noise:
     """Detector error model. Defaults are placeholders until eval/metrics.py measures them on MEVA."""
-    door_recall: float = 0.9
-    door_precision: float = 0.9
+    door_recall: float = 0.9      # entries
+    door_precision: float = 0.9   # entries
     count_mae: float = 1.5
+    exit_recall: float = 0.9      # exits are measured separately: their errors (people turning back) differ
+    exit_precision: float = 0.9
 
 
 def _hm(day: datetime, hm: str) -> int:
@@ -96,8 +98,10 @@ def event_session(sid: str, seed: int, noise: Noise = Noise(), day: datetime | N
     det_entries = [e for e, k in zip(entries, keep) if k]
     n_fp = rng.poisson(len(det_entries) * (1 / noise.door_precision - 1)) if noise.door_precision < 1 else 0
     det_entries += list(rng.uniform(start - 1800, end, n_fp))
-    keep = rng.random(len(exits)) < noise.door_recall
+    keep = rng.random(len(exits)) < noise.exit_recall
     det_exits = [e for e, k in zip(exits, keep) if k]
+    n_fp = rng.poisson(len(det_exits) * (1 / noise.exit_precision - 1)) if noise.exit_precision < 1 else 0
+    det_exits += list(rng.uniform(start, end, n_fp))
     sigma = noise.count_mae * np.sqrt(np.pi / 2)            # Gaussian with that MAE
     occ_obs = np.clip(np.round(occ_true + rng.normal(0, sigma, occ_true.size)), 0, None)
     # cloud sees 60 s medians

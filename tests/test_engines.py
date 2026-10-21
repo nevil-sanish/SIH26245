@@ -168,3 +168,16 @@ def test_risk_reduced_evidence_discounted_and_top3():
     many = risk.centre_risk([{"type": t, "severity": 1} for t in ["loop", "burst", "frozen", "data_gap"]])
     assert len(many["reasons"]) == 3 and many["risk"] <= 100
     assert risk.rupees_at_risk(10, 50) == 500
+
+
+def test_noise_model_is_per_direction():
+    # Entry noise must come from entries, not the any-direction mix inflated by false exits (red-team realism).
+    from eval.metrics import measured_noise
+    pr = lambda p, r, gt: {"precision": p, "recall": r, "gt": gt}
+    door = {"in": pr(0.977, 1.0, 43), "out": pr(0.25, 1.0, 2), "any_direction": pr(0.863, 1.0, 45)}
+    n = measured_noise(door, None)
+    assert (n.door_precision, n.door_recall) == (0.977, 1.0)
+    assert (n.exit_precision, n.exit_recall) == (0.977, 1.0)      # 2 GT exits: too few, entry figures used
+    sweep = [{"clip": "G420_exits", "door_min_frames": k, "out": pr(0.8, 0.9, 42), "in": pr(None, None, 0)} for k in range(1, 9)]
+    n = measured_noise(door, None, sweep)
+    assert (n.exit_precision, n.exit_recall) == (0.8, 0.9)

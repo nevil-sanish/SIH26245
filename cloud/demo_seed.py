@@ -59,7 +59,7 @@ def noise_from_accuracy() -> Noise:
     p = ROOT / "data" / "work" / "accuracy.json"
     if p.exists():
         n = json.loads(p.read_text()).get("noise_model", {})
-        return Noise(n.get("door_recall", 0.9), n.get("door_precision", 0.9), n.get("count_mae", 1.5))
+        return Noise(**{k: n[k] for k in Noise.__dataclass_fields__ if k in n})
     return Noise()
 
 

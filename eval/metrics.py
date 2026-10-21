@@ -204,11 +204,20 @@ def bandwidth() -> dict:
     return res
 
 
-def measured_noise(door: dict | None, count: dict | None) -> Noise:
+def measured_noise(door: dict | None, count: dict | None, sweep: list | None = None) -> Noise:
+    """Per-direction door error model. Entries: busy G420 clip (43 GT). Exits: the 42-exit G420 clip at the deployed
+    door_min_frames (door sweep) when available; the busy clip has only 2 GT exits, too few to estimate from."""
     n = Noise()
-    if door and door["any_direction"]["recall"] is not None:
-        n.door_recall = max(0.05, door["any_direction"]["recall"])
-        n.door_precision = max(0.05, door["any_direction"]["precision"] or 0.05)
+    pr = lambda x, d: (max(0.05, x["recall"]), max(0.05, x["precision"] or 0.05)) if x and x["recall"] is not None else d
+    if door:
+        n.door_recall, n.door_precision = pr(door["in"], pr(door["any_direction"], (n.door_recall, n.door_precision)))
+        n.exit_recall, n.exit_precision = pr(door["out"] if door["out"]["gt"] >= 10 else None, (n.door_recall, n.door_precision))
+    if sweep:
+        import yaml
+        k = yaml.safe_load(open(ROOT / "edge" / "cameras" / "meva_G420_door.yaml")).get("door_min_frames", 1)
+        row = next((v for v in sweep if v["clip"] == "G420_exits" and v["door_min_frames"] == k), None)
+        if row:
+            n.exit_recall, n.exit_precision = pr(row["out"], (n.exit_recall, n.exit_precision))
     if count:
         n.count_mae = count["mae"]
     return n
@@ -227,7 +236,9 @@ def run_all(seeds: int = 20, video: bool = True) -> dict:
         door = door_eval()
         count = count_eval()
         res["door"], res["count_door_clip"] = door, count
-    noise = measured_noise(door, count)
+    ds = ROOT / "data" / "work" / "door_sweep.json"
+    sweep = json.loads(ds.read_text()) if ds.exists() else None
+    noise = measured_noise(door, count, sweep)
     res["noise_model"] = {**noise.__dict__, "source": "measured" if door else "placeholder (no edge run yet)"}
     rows = sims(seeds, noise)
     if video and (ROOT / "data" / "edge_state").exists():
@@ -242,8 +253,7 @@ def run_all(seeds: int = 20, video: bool = True) -> dict:
     res["head_model"] = json.loads(hm.read_text()) if hm.exists() else None
     rb = ROOT / "data" / "work" / "robustness.json"
     res["robustness"] = json.loads(rb.read_text()) if rb.exists() else None
-    ds = ROOT / "data" / "work" / "door_sweep.json"
-    res["door_sweep"] = json.loads(ds.read_text()) if ds.exists() else None
+    res["door_sweep"] = sweep
     ho = ROOT / "data" / "work" / "head_onnx_check.json"
     res["head_onnx"] = json.loads(ho.read_text()) if ho.exists() else None
     cpu = ROOT / "data" / "work" / "cpu_benchmark.json"

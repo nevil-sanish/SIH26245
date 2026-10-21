@@ -49,8 +49,9 @@ def render(r: dict) -> str:
           "listed separately below.", ""]
 
     L += ["## Noise model used for simulated detections", "",
-          f"door recall {r['noise_model']['door_recall']:.3f}, door precision {r['noise_model']['door_precision']:.3f}, "
-          f"count MAE {r['noise_model']['count_mae']:.2f} — source: **{r['noise_model']['source']}**.", ""]
+          f"door entries recall {r['noise_model']['door_recall']:.3f} / precision {r['noise_model']['door_precision']:.3f}, "
+          f"exits recall {r['noise_model'].get('exit_recall', r['noise_model']['door_recall']):.3f} / precision "
+          f"{r['noise_model'].get('exit_precision', r['noise_model']['door_precision']):.3f}, count MAE {r['noise_model']['count_mae']:.2f} — source: **{r['noise_model']['source']}**.", ""]
 
     L += ["## Per-scenario confusion matrices", "",
           "| Scenario | Label | n | TP | FN | TN | FP | Rate | Flags fired |", "|---|---|---|---|---|---|---|---|---|"]

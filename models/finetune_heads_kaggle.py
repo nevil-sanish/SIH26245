@@ -1,5 +1,5 @@
 # SAKSHI head-detector fine-tune (RF-DETR Nano on SCUT-HEAD) for a Kaggle T4 kernel (internet + GPU on).
-# Port of models/finetune_heads_colab.ipynb; changes: 640 px (was 512), threshold picked on the Part A (classroom)
+# Port of models/finetune_heads_colab.ipynb; changes: 640 px (was 512), up to 80 epochs with early stopping (was 30 fixed), threshold picked on the Part A (classroom)
 # images of valid only, data in /tmp, outputs in /kaggle/working/out (attach that kernel as input to scripts/gpu_runs.sh).
 import os, sys, glob, json, shutil, random, subprocess, xml.etree.ElementTree as ET
 from pathlib import Path
@@ -73,11 +73,11 @@ shutil.copytree(W / 'heads_testA/test', D / 'test', dirs_exist_ok=True)
 from rfdetr import RFDETRNano
 import numpy as np
 from PIL import Image
-EPOCHS = 30
+EPOCHS = 80   # upper bound; early stopping (patience 10 epochs on the EMA val mAP) ends it when it plateaus
 RES = 640   # was 512 in Colab: small back-row heads get more pixels (SCUT-HEAD Part A mean 34 heads/image)
 model = RFDETRNano()
 model.train(dataset_dir=str(D), epochs=EPOCHS, batch_size='auto', lr=1e-4, resolution=RES,
-            output_dir=str(TRAIN), checkpoint_interval=5,
+            output_dir=str(TRAIN), checkpoint_interval=10, early_stopping=True, early_stopping_patience=10,
             notes={'project': 'SAKSHI SIH26245', 'data': 'SCUT-HEAD A+B trainval'})
 
 # 4. Evaluate; pick the score threshold on valid (not test).

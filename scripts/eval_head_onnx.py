@@ -4,8 +4,8 @@ The fine-tune reports PyTorch metrics; this checks the exported artifact the edg
 For each tiling option the score threshold is chosen on the Part A images of the fine-tune's *valid* split
 (same seeded A+B trainval shuffle as models/finetune_heads_kaggle.py, so no training image is used), and MAE is
 reported on Part A *test* at that threshold. The deployed (tile, threshold) is the one with the lowest valid MAE.
-Also records the per-image relative count error spread (room-level count bias, used by the H1 occupancy test).
-Writes data/work/head_onnx_check.json.   python -m scripts.eval_head_onnx [--max 500] [--tiles 0 640 480]
+Also records the per-image relative count error spread.
+Writes data/work/head_onnx_check.json.   python -m scripts.eval_head_onnx [--max 500] [--tiles 0 640]
 """
 import argparse
 import json
@@ -22,7 +22,7 @@ from edge.detect import Detector
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw" / "scut"
 PARTS = {"PartA": "1yaOF9os5wPVNNG4GVzNyULLVe74vdrBE", "PartB": "1LZ_KlTPStDEcqycfqUkDkqQ-aNMMC3cl"}  # SCUT-HEAD README (research use only)
-THRS = [round(t, 3) for t in np.arange(0.25, 0.5001, 0.025)]
+THRS = [round(t, 3) for t in np.arange(0.25, 0.6501, 0.025)]
 
 
 def fetch(part):
@@ -52,7 +52,7 @@ def counts(det, root, stems):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--max", type=int, default=500)
-    ap.add_argument("--tiles", type=int, nargs="*", default=[0, 640, 480])
+    ap.add_argument("--tiles", type=int, nargs="*", default=[0, 640])
     a = ap.parse_args()
     A, B = fetch("PartA"), fetch("PartB")
     tv = [("A", s) for s in ids(A, "trainval")] + [("B", s) for s in ids(B, "trainval")]
@@ -73,7 +73,7 @@ def main():
         res["by_tile"][str(tile)] = {
             "threshold": thr, "valid_mae": round(mae_v[thr], 3), "test_mae": round(float(np.abs(err).mean()), 3),
             "test_bias": round(float(err.mean()), 3),
-            "rel_err_sd": round(float(np.std(err / np.maximum(gt, 1))), 4),   # per-image (≈ per-room) count bias spread
+            "rel_err_sd": round(float(np.std(err / np.maximum(gt, 1))), 4),
             "valid_mae_by_threshold": {t: round(v, 3) for t, v in mae_v.items()},
             "test_mae_by_threshold": {t: round(float(np.abs(pt[t] - gt).mean()), 3) for t in THRS}}
         print("TILE", tile, json.dumps(res["by_tile"][str(tile)]), flush=True)

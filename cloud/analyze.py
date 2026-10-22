@@ -208,16 +208,17 @@ def inventory_flags(db: Session, c: Centre):
         need = {}
         for s in db.scalars(select(SanctionedInventory).where(SanctionedInventory.qp_code == b.qp_code)):
             need[s.item] = s.qty * (enrolled if s.per == "trainee" else 1)
-        have = defaultdict(int)
+        have, sim = defaultdict(int), False
         for a in db.scalars(select(AssetRegistry).where(AssetRegistry.centre_id == c.id)):
             have[a.label] += 1
+            sim |= "simulated" in a.source
         gaps = asset_engine.inventory_gap(need, have) if have else []
         if gaps:
             worst = max(gaps, key=lambda g: g["missing"] / g["sanctioned"])
             upsert_flag(db, c.id, b.id, datetime.now().strftime("%Y-%m-%d"), "asset_missing",
                         worst["missing"] / worst["sanctioned"], "FULL",
                         "; ".join(f"{g['item']}: {g['observed']}/{g['sanctioned']}" for g in gaps[:3]),
-                        {"gaps": gaps}, "simulated" if c.label == "simulated" else "measured")
+                        {"gaps": gaps}, "simulated" if sim else "measured")
 
 
 def daily_series(db: Session, centre_id: str) -> tuple[list[str], list[float]]:
@@ -237,7 +238,8 @@ def shadow_flag(db: Session, c: Centre) -> dict | None:
     if r["flag"]:
         upsert_flag(db, c.id, None, dates[-1], "inspection_shadow", min(1.0, r["lift"] / 30), "FULL", r["detail"],
                     {"p_value": r["p_value"], "change_points": [dates[i] for i in r["change_points"]],
-                     "inspections": insp}, "simulated" if c.label == "simulated" else "measured")
+                     "inspections": insp}, _label(db.scalars(select(Reconciliation).where(
+                         Reconciliation.centre_id == c.id)).all()))
     return r
 
 

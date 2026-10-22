@@ -274,8 +274,10 @@ def centre_risk(db: Session, centre_id: str) -> dict:
     r = risk.centre_risk([{"id": f.id, "type": f.type, "severity": f.severity, "evidence_level": f.evidence_level,
                            "explanation": f.explanation} for f in flags])
     since = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    # Only flagged sessions count: an honest session's small gap (late arrivals) is not money at risk.
     hours = db.scalars(select(func.sum(Reconciliation.unverified_trainee_hours)).where(
-        Reconciliation.centre_id == centre_id, Reconciliation.date >= since)).first() or 0.0
+        Reconciliation.centre_id == centre_id, Reconciliation.date >= since,
+        Reconciliation.status == "DISCREPANCY")).first() or 0.0
     r["unverified_trainee_hours"] = round(hours, 1)
     r["rupees_at_risk"] = risk.rupees_at_risk(hours)
     r["open_flags"] = len(flags)

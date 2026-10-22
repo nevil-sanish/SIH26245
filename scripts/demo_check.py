@@ -33,6 +33,8 @@ def main():
     honest = max(r["risk"] for r in q if r["id"] in HONEST)
     fraud = min(r["risk"] for r in q if r["id"] not in HONEST)
     assert honest < fraud, f"an honest centre (max risk {honest}) ranks with fraud centres (min {fraud})"
+    money = {r["id"]: r["rupees_at_risk"] for r in q if r["id"] in HONEST and r["rupees_at_risk"]}
+    assert not money, f"honest centres show money at risk: {money}"
 
     s = c.get(f"/v1/centres/{q[0]['id']}/summary", headers=state)
     assert s.status_code == 200, s.text

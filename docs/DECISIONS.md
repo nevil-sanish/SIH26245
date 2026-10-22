@@ -78,3 +78,4 @@ Found by running `docker compose up` and clicking through (2026-10-22), not afte
 | H3 `inspection_shadow` and `asset_missing` labels come from their own input rows | both took the centre's `mock` label and fell through to "measured" on simulated series |
 | Overview "Data gaps" counts open `data_gap` flags | it counted uplink-outage rows only and showed 0 next to five centres with data-gap flags |
 | Demo seed: honest measured centres claim room peak **minus the scheduled trainer** | the claim included the trainer, so honest TC0421 got `trainee_hours_gap` (claimed 1.33 vs observed 1.0 trainee-h). Its gap is still near the 20 % line, because the 5-min MEVA arrival clip fills during the session; a real 1-h class would be far below it |
+| Fleet page: a model is available when pinned in `models/checksums.txt` (copied into the cloud image) | the cloud container never holds the ONNX files (they run on the edge), so both models always showed "unavailable" |

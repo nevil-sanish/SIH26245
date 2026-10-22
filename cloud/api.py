@@ -378,7 +378,10 @@ def fleet_health(u=Depends(officer), db=Depends(db_session)):
                      "mean_bytes": round(db.scalar(select(func.avg(Packet.bytes)).where(
                          Packet.centre_id == cam.centre_id, Packet.cam == cam.cam)) or 0, 1)})
     gaps = db.scalars(select(DataGap).where(DataGap.resolved.is_(False))).all()
-    models = {m: (ROOT / "models" / m).exists() for m in ("rfdetr_nano_coco.onnx", "rfdetr_nano_head.onnx")}
+    # models run on the edge: "available" = pinned in models/checksums.txt (written by the measured run) or present here
+    sums = ROOT / "models" / "checksums.txt"
+    pinned = {l.split()[-1] for l in sums.read_text().splitlines() if l.strip()} if sums.exists() else set()
+    models = {m: m in pinned or (ROOT / "models" / m).exists() for m in ("rfdetr_nano_coco.onnx", "rfdetr_nano_head.onnx")}
     run_log = ROOT / "data" / "work" / "edge_runs.json"
     return {"cameras": cams, "models": models,
             "edge_runs": json.loads(run_log.read_text()) if run_log.exists() else [],

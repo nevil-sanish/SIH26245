@@ -190,8 +190,9 @@ def run_engines(centre: str | None = None, u=Depends(officer), db=Depends(db_ses
 def _centre_row(db, c: Centre) -> dict:
     r = analyze.centre_risk(db, c.id)
     last_insp = db.execute(select(func.max(analyze.Inspection.date)).where(analyze.Inspection.centre_id == c.id)).scalar()
-    gaps = db.scalar(select(func.count()).select_from(DataGap).where(DataGap.centre_id == c.id,
-                                                                     DataGap.resolved.is_(False)))
+    # uplink outages and sessions without footage both surface as open data_gap flags
+    gaps = db.scalar(select(func.count()).select_from(Flag).where(Flag.centre_id == c.id, Flag.type == "data_gap",
+                                                                  Flag.status == "open"))
     return {"id": c.id, "name": c.name, "state": c.state, "district": c.district, "lat": c.lat, "lon": c.lon,
             "label": c.label, "risk": r["risk"], "reasons": r["reasons"], "evidence_level": r["evidence_level"],
             "rupees_at_risk": r["rupees_at_risk"], "unverified_trainee_hours": r["unverified_trainee_hours"],

@@ -220,6 +220,9 @@ def measured_noise(door: dict | None, count: dict | None, sweep: list | None = N
             n.exit_recall, n.exit_precision = pr(row["out"], (n.exit_recall, n.exit_precision))
     if count:
         n.count_mae = count["mae"]
+    ho = ROOT / "data" / "work" / "head_onnx_check.json"
+    if ho.exists() and "deployed" in (h := json.loads(ho.read_text())):
+        n.count_rel_sd = h["deployed"]["rel_err_sd"]
     return n
 
 

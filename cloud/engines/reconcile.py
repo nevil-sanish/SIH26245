@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-from scipy.stats import binom, poisson
+from scipy.stats import binom, chi2, norm, poisson
 
 # Defaults; every one is overridable through `Params` (cloud config / API query).
 @dataclass
@@ -30,6 +30,7 @@ class Params:
     unmatched_frac: float = 0.1    # minimum share of unmatched check-ins before flagging ...
     door_recall: float = 0.9       # ... and it must also be improbable given the MEASURED door recall
     alpha: float = 0.01            #     (binomial test: P(≥ k unmatched | n, miss = 1 − recall) < alpha)
+    count_rel_sd: float = 0.06     # room-level count bias SD (MEASURED, SCUT-HEAD per-image relative error)
     hours_gap_frac: float = 0.2
     min_coverage: float = 0.7      # occupancy samples must cover ≥ 70 % of session time
     sample_s: float = 60           # occupancy sample spacing in the cloud (Whisper = 60 s)
@@ -126,6 +127,11 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
                       reason="evidence insufficient (tamper, low quality or data gap)")
         return result
 
+    # Room occupancy during teaching (used by unmatched_checkin and the occupancy signals below).
+    teach_mask = in_session & ~_in_slots(occ_t, s.breaks)
+    trainee_occ = np.clip(occ[teach_mask] - s.trainers, 0, None) if occ.size else np.zeros(0)
+    peak = float(np.percentile(trainee_occ, 95)) if trainee_occ.size else 0.0
+
     if has_door:
         pairs, unmatched = match_checkins(s.checkins, s.entries, p.window_s)
         uf = len(unmatched) / n if n else 0.0
@@ -133,11 +139,17 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
         p_val = float(binom.sf(k - 1, n, 1 - p.door_recall)) if n else 1.0
         # severity = unmatched share beyond what missed detections explain
         excess = max(0.0, uf - (1 - p.door_recall)) / max(p.door_recall, 1e-9)
+        # Independent second witness: the room camera. Peak trainee occupancy below the claim, against the
+        # measured room-level count bias (a whole-session bias, so it does not average out). Fisher-combined.
+        p_room = float(norm.sf((n - peak) / max(p.count_rel_sd * n, 1e-9))) if n else 1.0
+        p_comb = float(chi2.sf(-2 * (np.log(max(p_val, 1e-300)) + np.log(max(p_room, 1e-300))), 4))
+        p_use = p_comb if trainee_occ.size else p_val
         signals["unmatched_checkin"] = {
-            "value": k, "flag": uf >= p.unmatched_frac and k >= 2 and p_val < p.alpha,
-            "severity": excess, "p_value": round(p_val, 5),
+            "value": k, "flag": uf >= p.unmatched_frac and k >= 2 and p_use < p.alpha,
+            "severity": excess, "p_value": round(p_use, 5),
             "detail": f"{k}/{n} check-ins have no door entry within ±{p.window_s:.0f} s "
-                      f"(expected ≤{(1 - p.door_recall) * n:.0f} from missed detections; p={p_val:.3g})"}
+                      f"(expected ≤{(1 - p.door_recall) * n:.0f} from missed detections; door p={p_val:.3g}"
+                      + (f"; with room peak {peak:.0f}: p={p_comb:.3g})" if trainee_occ.size else ")")}
         result["matched"] = [[float(s.checkins[a]), float(s.entries[b])] for a, b in pairs]
         result["unmatched"] = [float(s.checkins[i]) for i in unmatched]
 
@@ -159,9 +171,6 @@ def reconcile_session(s: Session, p: Params = Params()) -> dict:
                                                    f"≈{lam:.1f} expected from door errors, p={p_leave:.3g}"}
 
     # Occupancy-based signals (room camera; available at FULL and REDUCED).
-    teach_mask = in_session & ~_in_slots(occ_t, s.breaks)
-    trainee_occ = np.clip(occ[teach_mask] - s.trainers, 0, None) if occ.size else np.zeros(0)
-    peak = float(np.percentile(trainee_occ, 95)) if trainee_occ.size else 0.0
     inf_ratio = peak / n if n else 1.0
     signals["inflation"] = {"value": round(peak, 1), "flag": n > 0 and inf_ratio < p.inflation_frac,
                             "severity": max(0.0, 1 - inf_ratio) if n else 0.0,

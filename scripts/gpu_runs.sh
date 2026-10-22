@@ -13,7 +13,8 @@ pip install -q uv==0.9.5
 unset UV_SYSTEM_PYTHON                      # Kaggle's image sets it: uv would install into the VM's Python, not the venv
 uv venv -q -p 3.11 /tmp/venv
 grep -v '^onnxruntime==' edge/requirements.txt > edge/req_gpu.txt     # same pins, GPU build of ONNX Runtime
-uv pip install -q --python /tmp/venv/bin/python -r edge/req_gpu.txt onnxruntime-gpu==1.31.0 gdown==5.2.0
+uv pip install -q --python /tmp/venv/bin/python -r edge/req_gpu.txt onnxruntime-gpu==1.31.0 gdown==5.2.0 patool==4.0.1
+apt-get -qq install -y unrar > /dev/null 2>&1 || true   # SCUT-HEAD Part B archive
 source /tmp/venv/bin/activate
 python -c "import onnxruntime as o, sys; print('python', sys.version.split()[0], 'ORT providers', o.get_available_providers())"
 
@@ -22,7 +23,7 @@ python models/download.py --onnx-from "$ONNX_DIR" --write-checksums
 python -m pytest -q tests 2>&1 | tail -3
 python -m redteam.runner prepare > /dev/null
 ffprobe -v error -show_entries format=duration -of csv=p=0 data/work/clips/lab.mp4 | sed 's/^/lab clip seconds: /'
-SAKSHI_GPU=1 python -m scripts.eval_head_onnx 2>&1 | grep -E "HEAD_ONNX|Error" || echo HEAD_ONNX_CHECK_FAILED
+SAKSHI_GPU=1 python -m scripts.eval_head_onnx 2>&1 | grep -E "TILE|HEAD_ONNX|Error" || echo HEAD_ONNX_CHECK_FAILED
 
 # CPU benchmark: 1 minute of the door clip on this VM's CPU (no GPU), honest edge fps.
 python -m edge.run --camera edge/cameras/meva_G420_door.yaml --state /tmp/cpu_bench --max-minutes 1 --quiet \

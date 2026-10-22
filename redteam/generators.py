@@ -30,6 +30,7 @@ class Noise:
     door_recall: float = 0.9      # entries
     door_precision: float = 0.9   # entries
     count_mae: float = 1.5
+    count_rel_sd: float = 0.06    # room-level count bias (occlusion, angle): SD of per-image relative error, SCUT-HEAD
     exit_recall: float = 0.9      # exits are measured separately: their errors (people turning back) differ
     exit_precision: float = 0.9
 
@@ -103,7 +104,9 @@ def event_session(sid: str, seed: int, noise: Noise = Noise(), day: datetime | N
     n_fp = rng.poisson(len(det_exits) * (1 / noise.exit_precision - 1)) if noise.exit_precision < 1 else 0
     det_exits += list(rng.uniform(start, end, n_fp))
     sigma = noise.count_mae * np.sqrt(np.pi / 2)            # Gaussian with that MAE
-    occ_obs = np.clip(np.round(occ_true + rng.normal(0, sigma, occ_true.size)), 0, None)
+    # per-sample noise averages out over a session; the room-level bias (same all session) does not
+    bias = 1 + rng.normal(0, noise.count_rel_sd)
+    occ_obs = np.clip(np.round(occ_true * bias + rng.normal(0, sigma, occ_true.size)), 0, None)
     # cloud sees 60 s medians
     mins = (occ_t // 60 * 60).astype(int)
     um = np.unique(mins)

@@ -87,6 +87,15 @@ def test_proxy_R2():
     assert "unmatched_checkin" in r["flags"] and "inflation" in r["flags"]
 
 
+def test_room_camera_corroborates_mild_proxying():
+    # 5/30 check-ins unmatched: door alone cannot tell this from missed detections at recall 0.9 (p ≈ 0.18)
+    s = honest(30)
+    s.entries = s.entries[5:]
+    assert "unmatched_checkin" not in reconcile_session(s)["flags"]          # room shows all 30: no flag
+    s.occ = list(np.full(len(s.occ_t), 26.0))                               # room shows 25 trainees + trainer
+    assert "unmatched_checkin" in reconcile_session(s)["flags"]
+
+
 def test_checkin_then_leave_R3():
     s = honest(30)
     t_leave = T0 + 20 * 60 + 900

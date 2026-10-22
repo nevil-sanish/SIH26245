@@ -40,18 +40,28 @@ def render(r: dict) -> str:
                  f"mean {a['mean_heads']:.1f} heads) — measured in the fine-tune run ({hm.get('resolution', '?')} px, {hm.get('gpu') or 'GPU'}) | {_f(a['count_mae'])} "
                  f"({a['count_mae_pct']:.1f} %) | ≤ 1.5 (reference 1.23) |")
     ho = r.get("head_onnx")
-    if ho:
-        best = min(ho["mae_by_threshold"], key=ho["mae_by_threshold"].get)
-        L.append(f"| Head-count MAE, deployed **ONNX** head model, SCUT-HEAD Part A test ({ho['images']} images) | "
-                 f"{ho['mae_by_threshold'].get('0.35', ho['mae_by_threshold'].get(0.35))} at thr 0.35 (best {ho['mae_by_threshold'][best]} at {best}) | ≤ 1.5 |")
+    if ho and "deployed" in ho:
+        d = ho["deployed"]
+        L.append(f"| Head-count MAE, deployed **ONNX** head model, SCUT-HEAD Part A test ({ho['images']} images; "
+                 f"tile {d['tile'] or 'none'}, threshold {d['threshold']} chosen on {ho['valid_images']} valid images) | "
+                 f"{_f(d['test_mae'])} (bias {d['test_bias']:+.2f}) | ≤ 1.5 |")
     L += ["", "The fraud FN rate deliberately includes *subtle* variants (R1b–R3b) that sit below the "
           "detection threshold. They show where the system stops seeing fraud; the blatant cases are "
           "listed separately below.", ""]
 
+    if ho and "by_tile" in ho:
+        L += ["## Head model: tiling and threshold (measured)", "",
+              "Threshold chosen per option on SCUT-HEAD Part A *valid*; MAE on Part A *test*. The deployed option has the "
+              "lowest valid MAE. Relative error spread = SD of (predicted − true) / true per image, used as the room-level "
+              "count bias in the H1 occupancy test and in the simulator.", "",
+              "| Tile | Threshold | Valid MAE | Test MAE | Test bias | Rel. error SD |", "|---|---|---|---|---|---|"]
+        L += [f"| {k if int(k) else 'none'} | {v['threshold']} | {v['valid_mae']} | {v['test_mae']} | {v['test_bias']:+.2f} | {v['rel_err_sd']} |"
+              for k, v in ho["by_tile"].items()]
+        L += [""]
     L += ["## Noise model used for simulated detections", "",
           f"door entries recall {r['noise_model']['door_recall']:.3f} / precision {r['noise_model']['door_precision']:.3f}, "
           f"exits recall {r['noise_model'].get('exit_recall', r['noise_model']['door_recall']):.3f} / precision "
-          f"{r['noise_model'].get('exit_precision', r['noise_model']['door_precision']):.3f}, count MAE {r['noise_model']['count_mae']:.2f} — source: **{r['noise_model']['source']}**.", ""]
+          f"{r['noise_model'].get('exit_precision', r['noise_model']['door_precision']):.3f}, count MAE {r['noise_model']['count_mae']:.2f}, room-level count bias SD {r['noise_model'].get('count_rel_sd', 0):.1%} — source: **{r['noise_model']['source']}**.", ""]
 
     L += ["## Per-scenario confusion matrices", "",
           "| Scenario | Label | n | TP | FN | TN | FP | Rate | Flags fired |", "|---|---|---|---|---|---|---|---|---|"]

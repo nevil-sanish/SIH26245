@@ -5,18 +5,21 @@ CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from the prompt is in [`DECISIONS.md`](DECISIONS.md). This file
 covers **where things stand, how we work, and what is left**.
 
-## 0a. UPDATE 2026-10-22 09:50 IST
+## 0a. STATE 2026-10-22 11:10 IST — measured run done, demo verified locally
 
-- `sakshi-finetune-long` COMPLETE: early stop at epoch 45/80 (best val mAP 0.493). Test A (classroom) count MAE
-  **1.618** at threshold 0.40 (was 2.17; target 1.5), test B MAE 1.24, test A mAP50 0.925 / mAP50:95 0.414.
-  Copy saved locally only in the session scratchpad. Re-fetch with `kaggle kernels output anonymousguy011/sakshi-finetune-long`.
-- Its chained pipeline **failed at once**: it ran with cwd `/tmp/sakshi` and `kaggle_pipeline.py` deleted that dir
-  before re-cloning. Fixed in `e340160` (clone with `cwd="/"`).
-- Measured run relaunched as its own kernel **`anonymousguy011/sakshi-pipeline`** (v1, GPU, `kernel_sources:
-  sakshi-finetune-long`). When COMPLETE: `kaggle kernels output anonymousguy011/sakshi-pipeline -p /tmp/pipe`, then
-  §0 step 2 from "Copy them into the repo".
+- Head fine-tune `sakshi-finetune-long`: early stop at epoch 45/80; ONNX head MAE **1.52** (target 1.5).
+- Measured run `anonymousguy011/sakshi-pipeline` (v1) COMPLETE, results committed (`14a1bec`): FN 13.1 %, FP 0.8 %,
+  door P/R 1.000/0.955, 4.94 fps CPU. The chained-pipeline bug (deleting its own cwd) is fixed (`e340160`).
+- The user allowed local `docker compose up` (2026-10-22). On this laptop `~/.docker/buildx/.lock` is root-owned:
+  build with `BUILDX_CONFIG=<any writable dir> docker compose up -d --build`. Fresh demo: `docker compose down -v` first.
+- Dashboard click-through done in Chrome (all 9 pages). Four fixes, listed in DECISIONS (last section).
+  After them, the §22 story holds: TC0880 H1, TC0777 H2 replay (measured), TC0915 H3, TC0307 S1, honest TC0421 = 0 flags.
+- Repo stays **public** (user decision 2026-10-22).
+- Open: FN 13.1 % > 10 % (R2b floor, see DECISIONS); head MAE 1.52 vs 1.5; `make edge-demo` (full local edge run
+  on CPU) not run; own college footage pending. The Kaggle pipeline's `demo_check` ran before the four fixes. The next
+  Kaggle run re-checks them, including the new "honest centres show ₹0" assertion.
 
-## 0. RESUME HERE (session of 2026-10-22 stopped at ~01:00 IST with Kaggle jobs still running)
+## 0. (historical) Kaggle state at 01:00 IST, 2026-10-22
 
 All compute now runs on **Kaggle** (Colab hit its rate limit). Kaggle CLI on the laptop is logged in as
 **`anonymousguy011`** (`kaggle config view`; browser account guyanonymous013@gmail.com, phone-verified, 30 GPU h/week).

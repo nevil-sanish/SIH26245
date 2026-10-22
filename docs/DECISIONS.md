@@ -32,9 +32,9 @@ with the reason. Numbers marked *pending* are filled from GPU-VM runs (`scripts/
 | PaddleOCR on DVR overlay | `en_PP-OCRv5_mobile_rec` read the burned clock exactly (12:01:05 at t = 65 s), 0.12 s per read | 2026-10-20 |
 | Honest-control FP of `unmatched_checkin` | 20–35 % with a fixed 10 % threshold at 90 % door recall → replaced by a binomial test against the *measured* recall: 1/120 | redteam sims, 2026-10-20 |
 | `react-leaflet` licence | Hippocratic-2.1 → rejected | npm registry, 2026-10-20 |
-| Edge CPU fps `[Guessing]` | **2.3 fps** on Colab's 2 vCPU (door camera, RF-DETR Nano COCO @384 + OCR, 1 min, 251 B per packet); target-PC figure still to measure | `data/work/cpu_benchmark.json`, Colab 2026-10-20 |
-| Door P/R (MEVA G420, 42 in / 2 out, ±4 s) | entries **P 0.977 / R 1.000**; exits P 0.25 (6 FP vs 2 GT: people turning back at the line); any-direction 0.863 / 1.000 at 720p, 0.913 / 0.955 in low light | ACCURACY_REPORT, Colab T4 2026-10-20 |
-| Count MAE (SCUT-HEAD Part A test, 500 images, mean 34.4 heads) | deployed ONNX via `edge.detect`: **2.21 @ thr 0.35** (PyTorch 2.17); best 1.86 @ 0.30 | `scripts/eval_head_onnx.py`, Colab T4 2026-10-20 |
+| Edge CPU fps `[Guessing]` | **4.94 fps** on Kaggle's 4 vCPU Xeon 2.0 GHz (door camera, RF-DETR Nano COCO @384 + ByteTrack + all integrity checks, 301 frames, 251 B per packet); was 2.3 on Colab's 2 vCPU; target-PC figure still to measure | `data/work/cpu_benchmark.json`, Kaggle 2026-10-22 |
+| Door P/R (MEVA G420, ±4 s) | at `door_min_frames` 2: entries **P 1.000 / R 0.905** (42 GT); exits on the 42-exit clip **P 0.912 / R 0.756**; any-direction 1.000 / 0.955 at 720p, 0.949 / 0.841 in low light. Was entries 0.977 / 1.000, exits P 0.25 on 2 GT (Colab 2026-10-20) | ACCURACY_REPORT, Kaggle T4 2026-10-22 |
+| Count MAE (SCUT-HEAD Part A test, 500 images, mean 34.4 heads) | 640 px model, deployed ONNX via `edge.detect`: **1.52 @ thr 0.35** (target 1.5; PyTorch 1.618 @ 0.40, early stop at epoch 45/80). Was 2.21 for the 512 px model. Per-frame person count on the MEVA door clip: 0.887 | `data/work/head_onnx_check.json`, Kaggle T4 2026-10-22 |
 | ₹ per trainee-hour `[Likely]` | **assumption ₹50** until a PMKVY cost-norm citation is added (`cloud/engines/risk.py`) | — |
 | QP codes for demo trades `[Likely]` | SSC/Q2212, AMH/Q0301, ELE/Q3104 — **mock**, to verify against NSDC QP documents | — |
 | SIDH export format `[Likely]` | not public → mock adapter defines the expected shape (`cloud/sidh_mock.py`) | — |
@@ -62,3 +62,19 @@ seeing R2b / R3b fail, and are listed so a reader can discount them. Numbers: AC
 | Red-team door noise **per direction**: entries from measured entry P/R, exits from the exit clip at the deployed `door_min_frames`; false exits injected | the simulator used any-direction precision (0.863, dragged down by false exits) for entries: ~14 % phantom entries instead of ~2 %, which "explained" proxy check-ins (R2b) |
 | † `checkin_then_leave`: 10 % floor **+ Poisson test** against the measured false-exit rate (was a fixed 20 % cut) | same structure as `unmatched_checkin`; a walk-out is evidence only if door errors cannot explain it — so the flag depends on measured exit quality, and stays silent on noisy doors |
 | † `unmatched_checkin` floor is `>=` 10 % (was `>`) | documented as a minimum share; exactly 3/30 could never flag |
+
+### Results of the 2026-10-22 run, and fixes found in the dashboard click-through
+
+Fraud FN **13.1 %** (was 21.9 %; target 10 %), honest FP **0.8 %** (1/120, N3). Every blatant scenario R1–R9 is caught.
+The remaining FN is almost all **R2b** (3 of 30 absent, 19/20 missed): with door entry recall 0.905, ≈ 3 of 30 genuine
+trainees are expected to have no detected entry anyway, so 3 proxies cannot be told apart from detector misses by the
+door alone. This is the detectability floor of one door camera, not a threshold to move.
+
+Found by running `docker compose up` and clicking through (2026-10-22), not after any test failure:
+
+| Fix | Why |
+|---|---|
+| ₹ at risk sums `unverified_trainee_hours` of `DISCREPANCY` sessions only | honest centres with 0 flags showed ≈ ₹3.4k from sub-threshold late arrivals |
+| H3 `inspection_shadow` and `asset_missing` labels come from their own input rows | both took the centre's `mock` label and fell through to "measured" on simulated series |
+| Overview "Data gaps" counts open `data_gap` flags | it counted uplink-outage rows only and showed 0 next to five centres with data-gap flags |
+| Demo seed: honest measured centres claim room peak **minus the scheduled trainer** | the claim included the trainer, so honest TC0421 got `trainee_hours_gap` (claimed 1.33 vs observed 1.0 trainee-h). Its gap is still near the 20 % line, because the 5-min MEVA arrival clip fills during the session; a real 1-h class would be far below it |

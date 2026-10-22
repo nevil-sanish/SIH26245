@@ -144,7 +144,8 @@ def build(noise: Noise):
         bid = f"{cid}-B1"
         kind = "practical" if cid == "TC0198" else "theory"
         seed["timetable"].append(dict(batch_id=bid, room="R1", start=t0, end=t0 + 300, kind=kind))
-        ck = np.sort(np.random.default_rng(zlib.crc32(cid.encode())).uniform(t0 - 240, t0 + 240, peak[cid] or 20))
+        n = peak[cid] - 1 if peak[cid] else 20   # the room peak includes the 1 scheduled trainer (seed["trainers"])
+        ck = np.sort(np.random.default_rng(zlib.crc32(cid.encode())).uniform(t0 - 240, t0 + 240, n))
         seed["checkins"] += [{"batch_id": bid, "ts": int(t), "label": "mock"} for t in ck]
     return seed, obs, assets, asset_obs
 

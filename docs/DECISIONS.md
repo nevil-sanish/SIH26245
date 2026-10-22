@@ -79,3 +79,10 @@ Found by running `docker compose up` and clicking through (2026-10-22), not afte
 | Overview "Data gaps" counts open `data_gap` flags | it counted uplink-outage rows only and showed 0 next to five centres with data-gap flags |
 | Demo seed: honest measured centres claim room peak **minus the scheduled trainer** | the claim included the trainer, so honest TC0421 got `trainee_hours_gap` (claimed 1.33 vs observed 1.0 trainee-h). Its gap is still near the 20 % line, because the 5-min MEVA arrival clip fills during the session; a real 1-h class would be far below it |
 | Fleet page: a model is available when pinned in `models/checksums.txt` (copied into the cloud image) | the cloud container never holds the ONNX files (they run on the edge), so both models always showed "unavailable" |
+
+### Changes of 2026-10-22 afternoon (second Kaggle run)
+
+| Change | Why |
+|---|---|
+| Head ONNX threshold and SAHI tile chosen on SCUT-HEAD Part A **valid** (the fine-tune's seeded split, no training images), MAE reported on **test**; `lab_room.yaml` gets the chosen setting | the earlier "1.52" was test MAE at 0.35, a threshold picked for the 512 px model; valid picks 0.40 for the 640 px model, where test MAE was 1.64. Reporting the test-best threshold is choosing on test |
+| † `unmatched_checkin` uses the room camera as a second witness: peak trainee occupancy vs the claim, tested against the **measured room-level count bias** (SD of per-image relative error on SCUT-HEAD), Fisher-combined with the door binomial test when room data exists | R2b (3 of 30 absent) is invisible to one door camera (see above). Made after seeing R2b fail, hence †. The simulator now draws one count bias per session from the same measured SD: per-sample noise alone averaged out over a session and would have made any occupancy test look far better than it is |

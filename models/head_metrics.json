@@ -1,11 +1,43 @@
 {
-  "chosen_threshold": 0.35,
-  "valid_mae_by_threshold": {"0.2": 6.918, "0.25": 3.306, "0.3": 1.885, "0.35": 1.665, "0.4": 2.1, "0.45": 2.879, "0.5": 3.747, "0.55": 4.835, "0.6": 6.144, "0.65": 8.071, "0.7": 11.321},
-  "resolution": 512,
-  "epochs": 30,
-  "test_A_classroom": {"images": 500, "mean_heads": 34.434, "count_mae": 2.168, "count_mae_pct": 5.933},
-  "test_B_web": {"images": 500, "mean_heads": 18.892, "count_mae": 1.366, "count_mae_pct": 5.868},
-  "test_A_coco_metrics": {"test/mAP_50_95": 0.3613, "test/mAP_50": 0.8614, "test/mAP_75": 0.2138, "test/mAR": 0.4491, "test/F1": 0.8475, "test/precision": 0.8835, "test/recall": 0.8144},
-  "onnx_check_test_A": {"provider": "CUDAExecutionProvider", "mae_by_threshold": {"0.2": 8.716, "0.25": 3.398, "0.3": 1.862, "0.35": 2.206, "0.4": 3.318, "0.5": 6.24}},
-  "gpu": ["Tesla T4"]
+  "chosen_threshold": 0.4,
+  "valid_mae_by_threshold": {
+    "0.2": 6.7114093959731544,
+    "0.25": 4.093959731543624,
+    "0.3": 2.6912751677852347,
+    "0.35": 1.9328859060402686,
+    "0.4": 1.8187919463087248,
+    "0.45": 2.302013422818792,
+    "0.5": 3.1073825503355703,
+    "0.55": 4.3355704697986575,
+    "0.6": 5.966442953020135,
+    "0.65": 8.483221476510067,
+    "0.7": 13.51006711409396
+  },
+  "resolution": 640,
+  "epochs": 80,
+  "threshold_split": "valid (Part A classroom images only)",
+  "valid_A_images": 149,
+  "test_A_classroom": {
+    "images": 500,
+    "mean_heads": 34.434,
+    "count_mae": 1.618,
+    "count_mae_pct": 4.528994787133059
+  },
+  "test_B_web": {
+    "images": 500,
+    "mean_heads": 18.892,
+    "count_mae": 1.24,
+    "count_mae_pct": 5.48625926105836
+  },
+  "test_A_coco_metrics": {
+    "test/loss": 3.7790513038635254,
+    "test/mAP_50_95": 0.4144419729709625,
+    "test/mAP_50": 0.9248262047767639,
+    "test/mAP_75": 0.27801764011383057,
+    "test/mAR": 0.5018993020057678,
+    "test/F1": 0.9066910147666931,
+    "test/precision": 0.9200550317764282,
+    "test/recall": 0.8937097191810608
+  },
+  "gpu": "Tesla T4\nTesla T4"
 }

@@ -1,0 +1,2 @@
+ffa9bc23f74084c5a4a9edde2dcb5cf370576abf89dc5eb1448f056e0e64ec25  rfdetr_nano_coco.onnx
+31bca15db2ff7464bbadddc3ac1cdcd36f1625e151c95b08fba9f71c1c1aa659  rfdetr_nano_head.onnx

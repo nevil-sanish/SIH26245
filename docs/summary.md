@@ -5,6 +5,17 @@ CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from the prompt is in [`DECISIONS.md`](DECISIONS.md). This file
 covers **where things stand, how we work, and what is left**.
 
+## 0a. UPDATE 2026-10-22 09:50 IST
+
+- `sakshi-finetune-long` COMPLETE: early stop at epoch 45/80 (best val mAP 0.493). Test A (classroom) count MAE
+  **1.618** at threshold 0.40 (was 2.17; target 1.5), test B MAE 1.24, test A mAP50 0.925 / mAP50:95 0.414.
+  Copy saved locally only in the session scratchpad. Re-fetch with `kaggle kernels output anonymousguy011/sakshi-finetune-long`.
+- Its chained pipeline **failed at once**: it ran with cwd `/tmp/sakshi` and `kaggle_pipeline.py` deleted that dir
+  before re-cloning. Fixed in `e340160` (clone with `cwd="/"`).
+- Measured run relaunched as its own kernel **`anonymousguy011/sakshi-pipeline`** (v1, GPU, `kernel_sources:
+  sakshi-finetune-long`). When COMPLETE: `kaggle kernels output anonymousguy011/sakshi-pipeline -p /tmp/pipe`, then
+  §0 step 2 from "Copy them into the repo".
+
 ## 0. RESUME HERE (session of 2026-10-22 stopped at ~01:00 IST with Kaggle jobs still running)
 
 All compute now runs on **Kaggle** (Colab hit its rate limit). Kaggle CLI on the laptop is logged in as

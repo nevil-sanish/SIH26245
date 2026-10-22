@@ -1,6 +1,6 @@
 # Accuracy report (D4) — auto-generated
 
-Generated `2026-10-22T05:07:49` by `python -m eval.metrics` + `python -m eval.report`. Seeds per simulated scenario: **20**. Do not edit by hand.
+Generated `2026-10-22T14:29:04` by `python -m eval.metrics` + `python -m eval.report`. Seeds per simulated scenario: **20**. Do not edit by hand.
 
 Labels: **measured** = real model output on real (possibly manipulated) footage · **simulated** = red-team generator · **mock** = stand-in government data.
 
@@ -14,9 +14,18 @@ Labels: **measured** = real model output on real (possibly manipulated) footage 
 | Per-frame person count MAE, MEVA door clip — measured | 0.887 | ≤ 1.5 |
 | Head-count MAE, SCUT-HEAD Part A test (classroom CCTV, 500 images, mean 34.4 heads) — measured in the fine-tune run (640 px, Tesla T4
 Tesla T4) | 1.618 (4.5 %) | ≤ 1.5 (reference 1.23) |
-| Head-count MAE, deployed **ONNX** head model, SCUT-HEAD Part A test (500 images) | 1.52 at thr 0.35 (best 1.52 at 0.35) | ≤ 1.5 |
+| Head-count MAE, deployed **ONNX** head model, SCUT-HEAD Part A test (500 images; tile 640, threshold 0.5 chosen on 149 valid images) | 1.648 (bias -0.32) | ≤ 1.5 |
 
 The fraud FN rate deliberately includes *subtle* variants (R1b–R3b) that sit below the detection threshold. They show where the system stops seeing fraud; the blatant cases are listed separately below.
+
+## Head model: tiling and threshold (measured)
+
+Threshold chosen per option on SCUT-HEAD Part A *valid*; MAE on Part A *test*. The deployed option has the lowest valid MAE. Relative error SD = SD of (predicted − true) / true per image.
+
+| Tile | Threshold | Valid MAE | Test MAE | Test bias | Rel. error SD |
+|---|---|---|---|---|---|
+| none | 0.375 | 1.879 | 1.544 | -0.21 | 0.1148 |
+| 640 | 0.5 | 1.671 | 1.648 | -0.32 | 0.1504 |
 
 ## Noise model used for simulated detections
 
@@ -37,9 +46,9 @@ door entries recall 0.905 / precision 1.000, exits recall 0.756 / precision 0.91
 | **R2b** Mild proxying: 3 of 30 absent (subtle) | simulated | 20 | 1 | 19 | – | – | FN 95.0 % | unmatched_checkin |
 | **R3** Check-in and leave | simulated | 20 | 20 | 0 | – | – | FN 0.0 % | checkin_then_leave, trainee_hours_gap, unmatched_checkin |
 | **R3b** Small walk-out: 5 of 30 leave (subtle) | simulated | 20 | 15 | 5 | – | – | FN 25.0 % | checkin_then_leave, unmatched_checkin |
-| **R4** Replayed footage (yesterday's DVR clip) | measured | 1 | 1 | 0 | – | – | FN 0.0 % | clock_drift, cross_centre_duplicate, loop |
+| **R4** Replayed footage (yesterday's DVR clip) | measured | 1 | 1 | 0 | – | – | FN 0.0 % | cross_centre_duplicate, loop |
 | **R5** Same clip from two centres | measured | 1 | 1 | 0 | – | – | FN 0.0 % | cross_centre_duplicate |
-| **R6** Frozen / covered camera | measured | 1 | 1 | 0 | – | – | FN 0.0 % | clock_non_monotonic, covered, cross_centre_duplicate, frozen |
+| **R6** Frozen / covered camera | measured | 1 | 1 | 0 | – | – | FN 0.0 % | covered, cross_centre_duplicate, frozen |
 | **R7** Ornamental equipment (14 days unused) | simulated | 20 | 20 | 0 | – | – | FN 0.0 % | ornamental_asset |
 | **R7-control** Ornamental equipment (14 days unused) | simulated | 20 | – | – | 20 | 0 | FP 0.0 % | — |
 | **R8** Rented-for-inspection asset | simulated | 20 | 20 | 0 | – | – | FN 0.0 % | asset_swapped |
@@ -81,35 +90,35 @@ Clip: MEVA G420 school entrance, 5 min, 2018-03-11 12:00 (re-stamped). Tolerance
 
 | Variant | Edge fps | Door P (any) | Door R (any) | Count MAE |
 |---|---|---|---|---|
-| 1080p | 4.5 | 0.977 | 0.955 | 0.914 |
-| 720p | 40.23 | 1.000 | 0.955 | 0.887 |
-| 360p | 48.35 | 1.000 | 0.909 | 0.901 |
-| 720p_crf40 | 42.19 | 1.000 | 0.864 | 0.901 |
-| 720p_lowlight | 40.85 | 0.949 | 0.841 | 0.722 |
+| 1080p | 3.9 | 0.977 | 0.955 | 0.914 |
+| 720p | 39.99 | 1.000 | 0.955 | 0.887 |
+| 360p | 49.26 | 1.000 | 0.909 | 0.901 |
+| 720p_crf40 | 40.68 | 1.000 | 0.864 | 0.901 |
+| 720p_lowlight | 39.87 | 0.949 | 0.841 | 0.722 |
 
 ## Bandwidth (measured from the edge outbox)
 
 | Camera | Packets | Whisper mean B | Whisper KB/h | Observed KB/h (with Normal-tier thumbnails) |
 |---|---|---|---|---|
-| CAM-DOOR | 36 | 283.500 | 16.610 | 51.310 |
-| CAM-ROOM | 24 | 271.900 | 15.930 | 30.260 |
-| CAM-LAB | 1 | 304.000 | 17.810 | 17.810 |
+| CAM-DOOR | 36 | 291.200 | 17.060 | 24.040 |
+| CAM-ROOM | 24 | 277.800 | 16.280 | 24.540 |
+| CAM-LAB | 1 | 317.000 | 18.570 | 18.570 |
 
 ## Edge runs (measured)
 
 | Centre | Camera | Clip | Frames | fps | Detector provider | Packets | Unavailable modules |
 |---|---|---|---|---|---|---|---|
-| TC0421 | CAM-DOOR | G420_busy | 1501 | 4.94 | CPUExecutionProvider | 6 | — |
-| TC0421 | CAM-ROOM | G421_room | 301 | 17.35 | CUDAExecutionProvider | 6 | — |
-| TC0777 | CAM-DOOR | R4 | 1501 | 40.31 | CUDAExecutionProvider | 6 | — |
-| TC0777 | CAM-DOOR | R4 | 1501 | 41.22 | CUDAExecutionProvider | 6 | — |
-| TC0555 | CAM-ROOM | G421_room | 301 | 17.51 | CUDAExecutionProvider | 6 | — |
-| TC0612 | CAM-ROOM | R6 | 301 | 32.69 | CUDAExecutionProvider | 6 | — |
-| TC0198 | CAM-LAB | lab | 23 | 12.84 | CUDAExecutionProvider | 1 | — |
+| TC0421 | CAM-DOOR | G420_busy | 1501 | 4.24 | CPUExecutionProvider | 6 | ocr |
+| TC0421 | CAM-ROOM | G421_room | 301 | 15.54 | CUDAExecutionProvider | 6 | ocr |
+| TC0777 | CAM-DOOR | R4 | 1501 | 40.14 | CUDAExecutionProvider | 6 | ocr |
+| TC0777 | CAM-DOOR | R4 | 1501 | 39.24 | CUDAExecutionProvider | 6 | ocr |
+| TC0555 | CAM-ROOM | G421_room | 301 | 16.22 | CUDAExecutionProvider | 6 | ocr |
+| TC0612 | CAM-ROOM | R6 | 301 | 33.08 | CUDAExecutionProvider | 6 | ocr |
+| TC0198 | CAM-LAB | lab | 23 | 12.63 | CUDAExecutionProvider | 1 | ocr |
 
 ## Edge CPU throughput (measured)
 
-Door camera, RF-DETR Nano 384, ByteTrack, all integrity checks, ONNX Runtime **CPU**: **4.94 processed frames/s** over 301 frames on the hardware below (PROMPT D1 target ≥ 1 fps per camera). Scenario runs above may use the CUDA provider for turnaround; the graph and outputs are the same.
+Door camera, RF-DETR Nano 384, ByteTrack, all integrity checks, ONNX Runtime **CPU**: **4.24 processed frames/s** over 301 frames on the hardware below (PROMPT D1 target ≥ 1 fps per camera). Scenario runs above may use the CUDA provider for turnaround; the graph and outputs are the same.
 
 ## Hardware
 

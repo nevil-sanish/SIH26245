@@ -6,7 +6,7 @@ role: room
 source: data/work/clips/lab.mp4
 start_time: "2026-10-19T10:00:00"
 sample_fps: 2
-detect: {model: models/rfdetr_nano_head.onnx, class_ids: [0], threshold: 0.35}   # head = logit column 0 (verified on SCUT-HEAD test); threshold chosen on valid
+detect: {model: models/rfdetr_nano_head.onnx, class_ids: [0], threshold: 0.5, tile: 640}   # head = logit column 0; threshold/tile chosen on SCUT-HEAD Part A valid (scripts/eval_head_onnx.py)
 room_polygon: [[0, 0], [568, 0], [568, 320], [0, 320]]
 assets:
   - {asset_id: PC-01, label: "computer monitor", zone: [[300, 170], [380, 170], [380, 240], [300, 240]]}

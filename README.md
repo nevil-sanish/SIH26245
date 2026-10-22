@@ -32,9 +32,10 @@ dashboard http://localhost:3000 (accounts in `data/demo/users.yaml`), API http:/
 ## Status
 
 Built: edge pipeline, cloud API + engines, red-team simulator, evaluation suite, dashboard (EN/HI), docs.
-Measured on Kaggle T4, 2026-10-22 (`docs/ACCURACY_REPORT.md`): door P/R 1.000 / 0.955 on MEVA, per-frame count MAE 0.89,
-head-count MAE 1.52 on SCUT-HEAD classroom images (target 1.5), fraud missed 13.1 % (all blatant cases caught; target 10 %),
-honest controls falsely flagged 0.8 %, edge 4.9 fps on 4 CPU cores, ≈ 16–18 KB/h per camera (Whisper tier).
+Measured on Kaggle T4, 2026-10-22 (final run, `docs/ACCURACY_REPORT.md`): door P/R 1.000 / 0.955 on MEVA, per-frame count
+MAE 0.89, head-count MAE **1.65** on SCUT-HEAD classroom images (target 1.5; threshold and tile chosen on validation),
+fraud missed **13.1 %** (target 10 %; all blatant cases caught), honest controls falsely flagged 0.8 %, edge 4.9 fps on
+4 CPU cores, ≈ 16–18 KB/h per camera. Both misses are documented in `docs/DECISIONS.md`.
 Own college footage: to be added; every eval script re-runs on it unchanged.
 
 Data attribution: MEVA dataset by Kitware Inc. and IARPA, CC BY 4.0.

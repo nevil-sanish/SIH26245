@@ -5,19 +5,15 @@ CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from the prompt is in [`DECISIONS.md`](DECISIONS.md). This file
 covers **where things stand, how we work, and what is left**.
 
-## 0a. STATE 2026-10-22 11:10 IST — measured run done, demo verified locally
+## 0a. FINAL STATE 2026-10-22 23:30 IST
 
-- Head fine-tune `sakshi-finetune-long`: early stop at epoch 45/80; ONNX head MAE **1.52** (target 1.5).
-- Measured run `anonymousguy011/sakshi-pipeline` (v1) COMPLETE, results committed (`14a1bec`): FN 13.1 %, FP 0.8 %,
-  door P/R 1.000/0.955, 4.94 fps CPU. The chained-pipeline bug (deleting its own cwd) is fixed (`e340160`).
-- The user allowed local `docker compose up` (2026-10-22). On this laptop `~/.docker/buildx/.lock` is root-owned:
-  build with `BUILDX_CONFIG=<any writable dir> docker compose up -d --build`. Fresh demo: `docker compose down -v` first.
-- Dashboard click-through done in Chrome (all 9 pages). Four fixes, listed in DECISIONS (last section).
-  After them, the §22 story holds: TC0880 H1, TC0777 H2 replay (measured), TC0915 H3, TC0307 S1, honest TC0421 = 0 flags.
-- Repo stays **public** (user decision 2026-10-22).
-- Open: FN 13.1 % > 10 % (R2b floor, see DECISIONS); head MAE 1.52 vs 1.5; `make edge-demo` (full local edge run
-  on CPU) not run; own college footage pending. The Kaggle pipeline's `demo_check` ran before the four fixes. The next
-  Kaggle run re-checks them, including the new "honest centres show ₹0" assertion.
+- Final measured run: Kaggle notebook `anonymousguy011/sakshi-pipeline-nb` (`eval/kaggle_pipeline.ipynb`), COMPLETE,
+  30/30 tests, `DEMO_CHECK_OK`, `ALL_DONE`. Results committed; the same run is what `docs/ACCURACY_REPORT.md` reports.
+- Head model (validation-chosen): tile 640, threshold 0.5 → test MAE **1.648** (target 1.5: **not met**).
+- Fraud missed **13.1 %** (target 10 %: **not met**). Remaining misses are subtle R2b/R3b; limit of one door camera.
+  A room-camera witness was tried and reverted (see DECISIONS).
+- Local stack rebuilt with fresh DB: blatant fraud centres top-ranked, honest centres 0 flags.
+- Still open, needs the user: `make edge-demo` never run locally; own college footage; repo visibility (public).
 
 ## 0. (historical) Kaggle state at 01:00 IST, 2026-10-22
 

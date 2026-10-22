@@ -86,3 +86,14 @@ Found by running `docker compose up` and clicking through (2026-10-22), not afte
 |---|---|
 | Head ONNX threshold and SAHI tile chosen on SCUT-HEAD Part A **valid** (the fine-tune's seeded split, no training images), MAE reported on **test**; `lab_room.yaml` gets the chosen setting | the earlier "1.52" was test MAE at 0.35, a threshold picked for the 512 px model; valid picks 0.40 for the 640 px model, where test MAE was 1.64. Reporting the test-best threshold is choosing on test |
 | Tried and **reverted**: room camera as a second witness for `unmatched_checkin` (peak occupancy vs claim, Fisher-combined with the door test, simulator given a per-session count bias from the measured per-image error) | measured per-image relative count error SD is 11–15 % (SCUT-HEAD Part A test), so a 10 % absence (R2b, 3 of 30) is inside counting error: Kaggle run 2026-10-22 gave FN 13.7 % (was 13.1 %) and honest FP 4.9 % (was 0.8 %), and honest demo centres were flagged. R2b stays the stated limit of one door camera + one room camera |
+
+### Final run (Kaggle `sakshi-pipeline-nb`, 2026-10-22 evening)
+
+| Result | Value | Target | Status |
+|---|---|---|---|
+| Head-count MAE, deployed ONNX (tile 640, thr 0.5 from valid; test) | 1.648 | ≤ 1.5 | not met |
+| Fraud missed (all incl. subtle) | 13.1 % | ≤ 10 % | not met |
+| Honest flagged | 0.8 % | ≤ 5 % | met |
+| Door P/R (MEVA) | 1.000 / 0.955 | ≥ 0.9 | met |
+
+The threshold grid was widened to 0.65 after the first valid pick hit the grid edge; the tile choice is 640 over none (valid MAE 1.67 vs 1.88).

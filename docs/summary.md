@@ -5,6 +5,11 @@ CCTV compliance monitoring for skilling centres. The build contract is [`PROMPT.
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Every deviation from the prompt is in [`DECISIONS.md`](DECISIONS.md). This file
 covers **where things stand, how we work, and what is left**.
 
+## NEXT STEP (pending, user to start)
+
+- Run the full measured pipeline on Kaggle: open `anonymousguy011/sakshi-pipeline-nb` and Run All (GPU + internet on,
+  `sakshi-finetune-long` attached). About 1 h 50 min. Then copy results in and commit.
+
 ## 0a. FINAL STATE 2026-10-22 23:30 IST
 
 - Final measured run: Kaggle notebook `anonymousguy011/sakshi-pipeline-nb` (`eval/kaggle_pipeline.ipynb`), COMPLETE,

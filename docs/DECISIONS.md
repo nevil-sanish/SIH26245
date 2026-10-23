@@ -97,3 +97,13 @@ Found by running `docker compose up` and clicking through (2026-10-22), not afte
 | Door P/R (MEVA) | 1.000 / 0.955 | ≥ 0.9 | met |
 
 The threshold grid was widened to 0.65 after the first valid pick hit the grid edge; the tile choice is 640 over none (valid MAE 1.67 vs 1.88).
+
+### Accepted limits (decided 2026-10-23)
+
+| Limit | Measured | Why accepted |
+|---|---|---|
+| Head-count MAE above the 1.5 target | 1.648 on SCUT-HEAD Part A test (tile 640, threshold 0.5 chosen on valid) | Tiling did not help and a longer fine-tune was not pursued; reported as measured. The occupancy signals tolerate this error. |
+| Fraud missed above the 10 % target | 13.1 %, nearly all subtle 3-of-30 absences (R2b, R3b) | One door camera cannot separate 3 absences from ordinary detection misses. A room-camera check was tried and reverted (false flags 4.9 %). Every blatant scenario is caught. |
+
+`make edge-demo` is covered by the Kaggle measured run (`redteam.runner prepare` + `video` on the GPU, packets in
+`data/demo/packets.jsonl`), so no local run is needed.
